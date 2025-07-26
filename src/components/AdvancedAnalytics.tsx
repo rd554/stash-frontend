@@ -79,27 +79,27 @@ export default function AdvancedAnalytics({ user, refreshTrigger }: AdvancedAnal
 
       // Handle trends
       if (trendsRes.status === 'fulfilled' && trendsRes.value.success) {
-        setTrends(trendsRes.value.data.trends)
+        setTrends((trendsRes.value.data as { trends: SpendingTrend[] }).trends)
       }
 
       // Handle health score
       if (healthRes.status === 'fulfilled' && healthRes.value.success) {
-        setHealthScore(healthRes.value.data.healthScore)
+        setHealthScore((healthRes.value.data as { healthScore: FinancialHealthScore }).healthScore)
       }
 
       // Handle correlations
       if (correlationsRes.status === 'fulfilled' && correlationsRes.value.success) {
-        setCorrelations(correlationsRes.value.data.correlations)
+        setCorrelations((correlationsRes.value.data as { correlations: MoodSpendCorrelation[] }).correlations)
       }
 
       // Handle predictions
       if (predictionsRes.status === 'fulfilled' && predictionsRes.value.success) {
-        setPredictions(predictionsRes.value.data.predictions)
+        setPredictions((predictionsRes.value.data as { predictions: PredictivePattern[] }).predictions)
       }
 
       // Handle category insights
       if (categoriesRes.status === 'fulfilled' && categoriesRes.value.success) {
-        setCategoryInsights(categoriesRes.value.data.categoryInsights)
+        setCategoryInsights((categoriesRes.value.data as { categoryInsights: CategoryInsight[] }).categoryInsights)
       }
 
     } catch (error) {
