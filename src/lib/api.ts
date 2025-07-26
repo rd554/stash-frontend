@@ -1,5 +1,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+import { Transaction } from '@/types'
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
@@ -223,11 +225,11 @@ class ApiClient {
   }
 
   // Get persona-based transactions up to current date
-  async getPersonaTransactions(userType: string, currentDate: string): Promise<ApiResponse<{ transactions: any[]; userType: string; currentDate: string; totalTransactions: number; totalAmount: number }>> {
+  async getPersonaTransactions(userType: string, currentDate: string): Promise<ApiResponse<{ transactions: Transaction[]; userType: string; currentDate: string; totalTransactions: number; totalAmount: number }>> {
     return this.request(`/personas/${userType}/transactions/${currentDate}`);
   }
 
-  async getLatestTransactions(personaType: string, limit: number = 10): Promise<ApiResponse<{ transactions: any[]; personaType: string; totalTransactions: number; totalAmount: number }>> {
+  async getLatestTransactions(personaType: string, limit: number = 10): Promise<ApiResponse<{ transactions: Transaction[]; personaType: string; totalTransactions: number; totalAmount: number }>> {
     return this.request(`/transactions/latest/${personaType}?limit=${limit}`);
   }
 
@@ -239,17 +241,17 @@ class ApiClient {
     return this.request(`/transactions/${userId}/weekly`);
   }
 
-  async getTransactionStats(personaType: string, days: number = 30): Promise<ApiResponse<{ totalAmount: number; transactionCount: number; averageAmount: number; topCategories: any[] }>> {
+  async getTransactionStats(personaType: string, days: number = 30): Promise<ApiResponse<{ totalAmount: number; transactionCount: number; averageAmount: number; topCategories: Array<{ category: string; amount: number; count: number }> }>> {
     return this.request(`/transactions/stats/${personaType}?days=${days}`);
   }
 
   // Get available persona types
-  async getPersonaTypes(): Promise<ApiResponse<{ personaTypes: any[] }>> {
+  async getPersonaTypes(): Promise<ApiResponse<{ personaTypes: string[] }>> {
     return this.request('/personas/types');
   }
 
   // Get system health
-  async getSystemHealth(): Promise<ApiResponse<{ status: string; uptime: string; memory: any; timestamp: string }>> {
+  async getSystemHealth(): Promise<ApiResponse<{ status: string; uptime: string; memory: { used: number; total: number; percentage: number }; timestamp: string }>> {
     return this.request('/system/health');
   }
 
@@ -277,14 +279,14 @@ class ApiClient {
     return this.request(`/budget/${userId}`);
   }
 
-  async updateBudgetCap(userId: string, category: string, budgetCap: number): Promise<ApiResponse<any>> {
+  async updateBudgetCap(userId: string, category: string, budgetCap: number): Promise<ApiResponse<{ success: boolean; message: string }>> {
     return this.request(`/budget/${userId}/${category}`, {
       method: 'PUT',
       body: JSON.stringify({ budgetCap }),
     });
   }
 
-  async resetBudgetCaps(userId: string): Promise<ApiResponse<any>> {
+  async resetBudgetCaps(userId: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
     return this.request(`/budget/${userId}`, {
       method: 'DELETE',
     });
@@ -368,7 +370,7 @@ class ApiClient {
     }
   }
 
-  async generateAgenticInsights(userId: string, transactionData?: any) {
+  async generateAgenticInsights(userId: string, transactionData?: Transaction[]) {
     return this.request(`/agentic/insights/${userId}/generate`, {
       method: 'POST',
       body: JSON.stringify({ transactionData }),
@@ -403,7 +405,7 @@ class ApiClient {
     });
   }
 
-  async createChatbotContextForTransaction(userId: string, transactionData: any) {
+  async createChatbotContextForTransaction(userId: string, transactionData: Transaction) {
     return this.request(`/agentic/chatbot/${userId}/context/transaction`, {
       method: 'POST',
       body: JSON.stringify({ transactionData }),

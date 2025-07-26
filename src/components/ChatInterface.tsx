@@ -128,10 +128,10 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
     try {
       const response = await apiClient.getChatHistory(user.username)
       if (response.success && response.data && typeof response.data === 'object' && 'messages' in response.data) {
-        const chatMessages = (response.data as any).messages
+        const chatMessages = (response.data as { messages: Array<{ id: string; userId: string; message: string; isUser: boolean; timestamp: string }> }).messages
         if (chatMessages && chatMessages.length > 0) {
           // Ensure timestamps are Date objects
-          const formattedMessages = chatMessages.map((msg: any) => ({
+          const formattedMessages = chatMessages.map((msg: { id: string; userId: string; message: string; isUser: boolean; timestamp: string }) => ({
             ...msg,
             timestamp: new Date(msg.timestamp)
           }))

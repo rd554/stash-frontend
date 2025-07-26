@@ -1,6 +1,6 @@
 'use client'
 
-import { User } from '@/types'
+import { User, Transaction } from '@/types'
 import { useState, useEffect } from 'react'
 import { apiClient } from '@/lib/api'
 import { Edit2, Check, X } from 'lucide-react'
@@ -9,7 +9,7 @@ import { BudgetCapStorage } from '@/lib/budgetStorage'
 
 interface BudgetOverviewProps {
   user: User
-  transactions?: any[] // Add transactions prop
+  transactions?: Transaction[] // Add transactions prop
 }
 
 interface BudgetCategory {
@@ -130,7 +130,7 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
     }
   }
 
-  const calculateBudgetDataFromTransactions = (transactionList: any[] = transactions): BudgetCategory[] => {
+  const calculateBudgetDataFromTransactions = (transactionList: Transaction[] = transactions): BudgetCategory[] => {
     // Get default budget caps based on persona
     const getDefaultBudgetCaps = () => {
       const persona = user.spendingPersonality

@@ -1,6 +1,6 @@
 'use client'
 
-import { User } from '@/types'
+import { User, Transaction } from '@/types'
 import { useState, useEffect } from 'react'
 import { apiClient } from '@/lib/api'
 import { Edit2 } from 'lucide-react'
@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 
 interface MetricCardsProps {
   user: User | null
-  transactions?: any[] // Add transactions prop
+  transactions?: Transaction[] // Add transactions prop
 }
 
 interface FinancialMetrics {
@@ -109,7 +109,7 @@ export default function MetricCards({ user, transactions = [] }: MetricCardsProp
     }
   }
 
-  const calculateMetricsFromTransactions = (transactionList: any[], salaryOverride?: number): FinancialMetrics => {
+  const calculateMetricsFromTransactions = (transactionList: Transaction[], salaryOverride?: number): FinancialMetrics => {
     const salaryToUse = salaryOverride || currentSalary
     
     // Get current date to filter transactions up to today

@@ -162,7 +162,7 @@ export default function AdvancedAnalytics({ user, refreshTrigger }: AdvancedAnal
         ].map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
+            onClick={() => setActiveTab(tab.key as 'trends' | 'health' | 'mood' | 'predictions' | 'categories')}
             className={`elegant-tab flex items-center px-4 py-2 text-sm font-medium border-b-2 ${
               activeTab === tab.key
                 ? 'elegant-tab-active border-transparent'

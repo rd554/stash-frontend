@@ -58,7 +58,7 @@ export default function Home() {
         // Other error
         setError(response.error || 'Login failed. Please try again.')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error:', error)
       setError('Login failed. Please try again.')
     } finally {

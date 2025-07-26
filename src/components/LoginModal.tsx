@@ -42,7 +42,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       if (response.success && response.data && typeof response.data === 'object' && 'user' in response.data) {
         // Store user info and redirect to dashboard
         localStorage.setItem('stash-ai-user', username)
-        localStorage.setItem('stash-ai-user-data', JSON.stringify((response.data as any).user))
+        localStorage.setItem('stash-ai-user-data', JSON.stringify((response.data as { user: { username: string; name: string; age: number; theme: string; spendingPersonality: string } }).user))
         toast.success('Login successful!')
         router.push('/dashboard')
       } else {

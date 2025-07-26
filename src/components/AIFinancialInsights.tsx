@@ -27,6 +27,15 @@ interface Insight {
   insightCategory?: InsightCategory;
 }
 
+// Backend insight data interface
+interface BackendInsight {
+  type: string;
+  content: string;
+  priority: string;
+  insightId?: string;
+  title?: string;
+}
+
 export default function AIFinancialInsights({ user, onGetTips, refreshTrigger }: AIFinancialInsightsProps) {
   const [insights, setInsights] = useState<Insight[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,7 +73,7 @@ export default function AIFinancialInsights({ user, onGetTips, refreshTrigger }:
         console.log('🔍 AI INSIGHTS DEBUG: Number of agentic insights:', Array.isArray(agenticResponse.data) ? agenticResponse.data.length : 'N/A')
         
         // In loadInsights, when mapping backend data, set type and insightCategory to the mapped value only
-        const agenticInsights = agenticResponse.data.map((insight: any, index: number) => {
+        const agenticInsights = agenticResponse.data.map((insight: BackendInsight, index: number) => {
           const insightCategory = mapInsightType(insight.type);
           return {
             type: insightCategory, // always one of the four allowed
