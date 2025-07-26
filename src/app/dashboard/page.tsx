@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Wallet, Bell, MessageCircle, Plus, TrendingUp, TrendingDown, X, Send, Settings } from 'lucide-react'
-import { User, Transaction, SpendingPersonality } from '@/types'
-import TransactionCard from '@/components/TransactionCard'
-import ChatInterface from '@/components/ChatInterface'
+import { User, Transaction } from '@/types'
 import FloatingChatbot from '@/components/FloatingChatbot'
 import NewTransactionModal from '@/components/NewTransactionModal'
 import { apiClient } from '@/lib/api'
@@ -42,9 +39,9 @@ export default function DashboardPage() {
     }
 
     const parsedUserData = JSON.parse(userData)
-    const userObj = {
+    const userObj: User = {
       id: username,
-      username: username as any,
+      username: username as 'test1' | 'test2' | 'test3',
       name: parsedUserData.name,
       age: parseInt(parsedUserData.age),
       theme: parsedUserData.theme,
@@ -105,8 +102,8 @@ export default function DashboardPage() {
       if (response.success && response.data) {
         // The API client wraps the response, so we need to access response.data.data
         const apiData = (response.data && typeof response.data === 'object' && 'data' in response.data)
-          ? (response.data as any).data
-          : response.data
+          ? (response.data as { data: { transactions: Transaction[]; manualCount: number; personaCount: number } }).data
+          : response.data as { transactions: Transaction[]; manualCount: number; personaCount: number }
         const allTransactions = apiData.transactions || []
         
         console.log('Loaded transactions:', allTransactions.length)
@@ -198,7 +195,7 @@ export default function DashboardPage() {
     try {
       const response = await apiClient.getNudges(userId, true)
       if (response.success && response.data && typeof response.data === 'object' && 'unreadCount' in response.data) {
-        setUnreadNudges((response.data as any).unreadCount || 0)
+        setUnreadNudges((response.data as { unreadCount: number }).unreadCount || 0)
       }
     } catch (error) {
       console.error('Failed to load nudges:', error)
@@ -246,7 +243,7 @@ export default function DashboardPage() {
     try {
       const response = await apiClient.sendMessage(user.username, newMessage.message)
       if (response.success && response.data && typeof response.data === 'object' && 'aiMessage' in response.data) {
-        const aiMessage = (response.data as any).aiMessage
+        const aiMessage = (response.data as { aiMessage: { id: string; message: string; timestamp: string } }).aiMessage
         setMessages((prev) => [...prev, {
           id: aiMessage.id || Date.now().toString(),
           message: aiMessage.message || 'Sorry, I encountered an error.',
