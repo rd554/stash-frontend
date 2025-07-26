@@ -104,7 +104,7 @@ export default function Home() {
                 onChange={(e) => setUsername(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleLogin({ username, name: '', age: '', theme: '', spendingPersonality: '' })}
                 className="w-full bg-white focus:outline-none focus:border-black text-[18px] placeholder-gray-200"
-                style={{ border: '2px solid #9CA3AF !important', padding: '0.75rem 2.5rem !important', borderRadius: '16px !important', boxSizing: 'border-box !important', color: '#000000 !important' } as React.CSSProperties}
+                style={{ border: '2px solid #9CA3AF', padding: '0.75rem 2.5rem', borderRadius: '16px', boxSizing: 'border-box', color: '#000000' }}
               />
             </div>
             <div style={{ marginBottom: '32px' }}>
@@ -115,7 +115,7 @@ export default function Home() {
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleLogin({ username, name: '', age: '', theme: '', spendingPersonality: '' })}
                 className="w-full bg-white focus:outline-none focus:border-black text-[18px] placeholder-gray-200"
-                style={{ border: '2px solid #9CA3AF !important', padding: '0.75rem 2.5rem !important', borderRadius: '16px !important', boxSizing: 'border-box !important', color: '#000000 !important' } as React.CSSProperties}
+                style={{ border: '2px solid #9CA3AF', padding: '0.75rem 2.5rem', borderRadius: '16px', boxSizing: 'border-box', color: '#000000' }}
               />
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function Home() {
               onClick={() => handleLogin({ username, name: '', age: '', theme: '', spendingPersonality: '' })}
               disabled={isLoading}
               className="w-full bg-[#000000] text-[#ffffff] text-[18px] font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-              style={{ padding: '0.75rem 2.5rem !important', borderRadius: '16px !important', boxSizing: 'border-box !important' } as React.CSSProperties}
+              style={{ padding: '0.75rem 2.5rem', borderRadius: '16px', boxSizing: 'border-box' }}
             >
               {isLoading ? 'Logging in...' : 'Get Started'}
             </button>
