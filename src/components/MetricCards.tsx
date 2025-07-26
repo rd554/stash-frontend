@@ -1,0 +1,417 @@
+'use client'
+
+import { User } from '@/types'
+import { useState, useEffect } from 'react'
+import { apiClient } from '@/lib/api'
+import { Edit2 } from 'lucide-react'
+import toast from 'react-hot-toast'
+
+interface MetricCardsProps {
+  user: User | null
+  transactions?: any[] // Add transactions prop
+}
+
+interface FinancialMetrics {
+  salary: number
+  emi: number
+  savings: number
+  netSpend: number
+  totalSpent: number
+}
+
+export default function MetricCards({ user, transactions = [] }: MetricCardsProps) {
+  const [metrics, setMetrics] = useState<FinancialMetrics | null>(null)
+  const [currentSalary, setCurrentSalary] = useState(100000) // Track editable salary
+
+  // Debug: Log when metrics change
+  useEffect(() => {
+    console.log('Metrics state changed:', metrics)
+  }, [metrics])
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState('')
+
+  useEffect(() => {
+    if (user) {
+      loadSalaryAndMetrics()
+    } else {
+      // Initialize with fallback metrics if no user
+      const fallbackMetrics = getFallbackMetrics()
+      setMetrics(fallbackMetrics)
+      setCurrentSalary(fallbackMetrics.salary) // Update current salary
+    }
+  }, [user, transactions]) // Add transactions to dependency array
+
+  const loadSalaryAndMetrics = async () => {
+    if (!user) return
+    
+    try {
+      // Load salary from database
+      const salaryResponse = await apiClient.getSalary(user.username)
+      
+      let salary = 100000 // Default salary
+      
+      if (salaryResponse.success && salaryResponse.data) {
+        // The API client wraps the response, so we need to access response.data.data
+        const apiData = (salaryResponse.data as any)?.data || salaryResponse.data
+        if (apiData && typeof apiData === 'object' && 'salary' in apiData) {
+          salary = (apiData as any).salary
+        }
+      }
+      
+      setCurrentSalary(salary)
+      
+      if (transactions.length > 0) {
+        // Calculate metrics from actual transactions with database salary
+        const calculatedMetrics = calculateMetricsFromTransactions(transactions, salary)
+        setMetrics(calculatedMetrics)
+      } else {
+        // Fallback to API or static data
+        const fallbackMetrics = getFallbackMetrics()
+        fallbackMetrics.salary = salary // Use database salary
+        fallbackMetrics.netSpend = salary - fallbackMetrics.emi - fallbackMetrics.savings
+        setMetrics(fallbackMetrics)
+        loadFinancialMetrics()
+      }
+    } catch (error) {
+      console.error('Error loading salary and metrics:', error)
+      // Fallback to default
+      const fallbackMetrics = getFallbackMetrics()
+      setMetrics(fallbackMetrics)
+      setCurrentSalary(fallbackMetrics.salary)
+    }
+  }
+
+  const loadFinancialMetrics = async () => {
+    if (!user) return
+    
+    try {
+      setLoading(true)
+      const response = await apiClient.getFinancialMetrics(user.username)
+      if (response.success && response.data) {
+        // Check if the API data is valid (has non-zero values)
+        const apiData = response.data as FinancialMetrics
+        const hasValidData = apiData && 
+          typeof apiData.salary === 'number' && apiData.salary > 0 &&
+          typeof apiData.emi === 'number' && apiData.emi > 0 &&
+          typeof apiData.savings === 'number' && apiData.savings >= 0 &&
+          typeof apiData.netSpend === 'number' && apiData.netSpend >= 0
+        
+        if (hasValidData) {
+          setMetrics(apiData)
+          setCurrentSalary(apiData.salary) // Update current salary from API
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load financial metrics:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const calculateMetricsFromTransactions = (transactionList: any[], salaryOverride?: number): FinancialMetrics => {
+    const salaryToUse = salaryOverride || currentSalary
+    
+    // Get current date to filter transactions up to today
+    const currentDate = new Date()
+    const currentDateString = currentDate.toISOString().split('T')[0]
+    
+    // Filter transactions up to current date
+    const validTransactions = transactionList.filter(tx => {
+      const txDate = tx.date
+      return txDate <= currentDateString
+    })
+    
+    // Calculate totals by category
+    const categoryTotals: { [key: string]: number } = {}
+    let totalSpent = 0
+    
+    validTransactions.forEach(tx => {
+      const category = tx.category?.toLowerCase() || ''
+      const amount = typeof tx.amount === 'string' ? parseFloat(tx.amount) : tx.amount
+      
+      if (category === 'savings') {
+        // Savings is positive (money saved)
+        categoryTotals['savings'] = (categoryTotals['savings'] || 0) + amount
+      } else {
+        // All other categories are expenses (negative)
+        categoryTotals[category] = (categoryTotals[category] || 0) + amount
+        totalSpent += amount
+      }
+    })
+    
+    // Get EMI based on persona
+    const getEMI = () => {
+      const persona = user?.spendingPersonality || 'Medium Spender'
+      switch (persona) {
+        case 'Heavy Spender': return 45000
+        case 'Medium Spender': return 20000
+        case 'Max Saver': return 12000
+        default: return 20000
+      }
+    }
+    
+    const emi = getEMI()
+    const salary = salaryToUse // Use the provided salary or current salary
+    const savings = categoryTotals['savings'] || 0
+    const netSpend = salary - emi - savings
+    
+    const calculatedMetrics: FinancialMetrics = {
+      salary,
+      emi,
+      savings,
+      netSpend,
+      totalSpent
+    }
+    
+    console.log('Calculated metrics:', calculatedMetrics)
+    return calculatedMetrics
+  }
+
+  const getFallbackMetrics = (): FinancialMetrics => {
+    const persona = user?.spendingPersonality || 'Medium Spender'
+    console.log('Getting fallback metrics for persona:', persona)
+    
+    let fallbackMetrics: FinancialMetrics
+    
+    if (persona === 'Heavy Spender') {
+      fallbackMetrics = {
+        salary: 100000,
+        emi: 45000,
+        savings: 5000,
+        netSpend: 50000,
+        totalSpent: 125000
+      }
+    } else if (persona === 'Medium Spender') {
+      fallbackMetrics = {
+        salary: 100000,
+        emi: 20000,
+        savings: 20000,
+        netSpend: 60000,
+        totalSpent: 80000
+      }
+    } else { // Max Saver
+      fallbackMetrics = {
+        salary: 100000,
+        emi: 12000,
+        savings: 40000,
+        netSpend: 48000,
+        totalSpent: 52000
+      }
+    }
+    
+    console.log('Fallback metrics:', fallbackMetrics)
+    return fallbackMetrics
+  }
+
+  const handleEdit = (field: string, currentValue: number) => {
+    setEditing(field)
+    setEditValue(currentValue.toString())
+  }
+
+  const handleSave = async (field: string) => {
+    if (!metrics || !user) return
+
+    try {
+      const newValue = parseInt(editValue)
+      if (field === 'salary' && newValue < 100000) {
+        toast.error('Salary must be at least ₹1,00,000')
+        return
+      }
+
+                  if (field === 'salary') {
+              const response = await apiClient.updateSalary(user.username, newValue)
+              
+              if (response.success) {
+                toast.success('Salary updated successfully')
+                setCurrentSalary(newValue) // Update local salary state
+                // Recalculate metrics with new salary
+                if (transactions.length > 0) {
+                  const newMetrics = calculateMetricsFromTransactions(transactions, newValue)
+                  setMetrics(newMetrics)
+                } else {
+                  setMetrics(prev => prev ? {
+                    ...prev,
+                    salary: newValue,
+                    netSpend: newValue - prev.emi - prev.savings
+                  } : null)
+                }
+              } else {
+                console.error('Failed to update salary:', response.error)
+                toast.error('Failed to update salary')
+              }
+            }
+      
+      setEditing(null)
+      setEditValue('')
+    } catch (error) {
+      console.error('Failed to update:', error)
+      toast.error('Failed to update')
+    }
+  }
+
+  const handleCancel = () => {
+    setEditing(null)
+    setEditValue('')
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent, field: string) => {
+    if (e.key === 'Enter') {
+      handleSave(field)
+    } else if (e.key === 'Escape') {
+      handleCancel()
+    }
+  }
+
+  if (loading) {
+    return (
+      <div 
+        className="flex justify-between bg-[#ffffff]" 
+        style={{ 
+          gap: '1.5rem', 
+          padding: '24px 32px 0 32px'
+        }}
+      >
+        {[1, 2, 3, 4].map((i) => (
+          <div 
+            key={i} 
+            className="w-[260px] h-[120px] bg-gray-100 rounded-[12px] animate-pulse"
+            style={{ padding: '20px 20px 10px 20px' }}
+          >
+            <div className="h-4 bg-gray-200 rounded mb-2"></div>
+            <div className="h-8 bg-gray-200 rounded"></div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (!metrics) {
+    return (
+      <div 
+        className="flex justify-between bg-[#ffffff]" 
+        style={{ 
+          gap: '1.5rem', 
+          padding: '24px 32px 0 32px'
+        }}
+      >
+        {[1, 2, 3, 4].map((i) => (
+          <div 
+            key={i}
+            className="w-[260px] h-[120px] bg-gray-100 rounded-[12px] animate-pulse"
+            style={{ padding: '20px 20px 10px 20px' }}
+          >
+            <div className="h-4 bg-gray-200 rounded mb-2"></div>
+            <div className="h-8 bg-gray-200 rounded"></div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div 
+      className="flex justify-between bg-[#ffffff]" 
+      style={{ 
+        gap: '1.5rem', 
+        padding: '20px 32px 0 32px'
+      }}
+    >
+      {/* Fixed Salary Card */}
+      <div 
+        className="flex flex-col items-start justify-between w-[260px] h-[120px] bg-[#eaf2ff] rounded-[12px] shadow-md" 
+        style={{ padding: '20px 20px 10px 20px', border: '1px solid #000000' }}
+      >
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-center w-[32px] h-[32px] bg-[#4a90e2] rounded-full">
+            <span className="text-white text-[14px] font-bold">₹</span>
+          </div>
+                      <div className="flex items-center gap-2">
+              <div className="text-[#4a90e2] text-[14px]">📈</div>
+              <button
+                onClick={() => handleEdit('salary', metrics?.salary || 0)}
+                className="text-[#4a90e2] hover:text-[#357abd] transition-colors"
+              >
+                <Edit2 size={14} />
+              </button>
+            </div>
+        </div>
+        <div>
+          <p className="text-[#4a90e2] text-[12px] font-semibold">Fixed Salary</p>
+          {editing === 'salary' ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => handleKeyPress(e, 'salary')}
+                onBlur={() => handleSave('salary')}
+                className="text-[#000000] text-[18px] font-bold bg-transparent border-b border-[#4a90e2] focus:outline-none w-28"
+                autoFocus
+              />
+              <button
+                onClick={() => handleSave('salary')}
+                className="text-[#4a90e2] text-sm hover:underline"
+              >
+                Save
+              </button>
+            </div>
+          ) : (
+            <p className="text-[#000000] text-[18px] font-bold">₹{(metrics?.salary || 0).toLocaleString()}</p>
+          )}
+        </div>
+      </div>
+
+      {/* EMI Card */}
+      <div 
+        className="flex flex-col items-start justify-between w-[260px] h-[120px] bg-[#fff7e6] rounded-[12px] shadow-md" 
+        style={{ padding: '20px 20px 10px 20px', border: '1px solid #000000' }}
+      >
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-center w-[32px] h-[32px] bg-[#f5a623] rounded-full">
+            <span className="text-white text-[14px]">💳</span>
+          </div>
+          <div className="text-[#f5a623] text-[14px]">🔒</div>
+        </div>
+        <div>
+          <p className="text-[#f5a623] text-[12px] font-semibold">EMI</p>
+          <p className="text-[#000000] text-[18px] font-bold">₹{(metrics?.emi || 0).toLocaleString()}</p>
+        </div>
+      </div>
+
+      {/* Savings Card */}
+      <div 
+        className="flex flex-col items-start justify-between w-[260px] h-[120px] bg-[#e6f9e6] rounded-[12px] shadow-md" 
+        style={{ padding: '20px 20px 10px 20px', border: '1px solid #000000' }}
+      >
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-center w-[32px] h-[32px] bg-[#4caf50] rounded-full">
+            <span className="text-white text-[14px]">💰</span>
+          </div>
+          <div className="text-[#4caf50] text-[14px]">✅</div>
+        </div>
+        <div>
+          <p className="text-[#4caf50] text-[12px] font-semibold">Savings</p>
+          <p className="text-[#000000] text-[18px] font-bold">₹{(metrics?.savings || 0).toLocaleString()}</p>
+        </div>
+      </div>
+
+      {/* Net Spend Card */}
+      <div 
+        className="flex flex-col items-start justify-between w-[260px] h-[120px] bg-[#ffe6e6] rounded-[12px] shadow-md" 
+        style={{ padding: '20px 20px 10px 20px', border: '1px solid #000000' }}
+      >
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-center w-[32px] h-[32px] bg-[#e74c3c] rounded-full">
+            <span className="text-white text-[14px]">💰</span>
+          </div>
+          <div className="text-[#e74c3c] text-[14px]">→</div>
+        </div>
+        <div>
+          <p className="text-[#e74c3c] text-[12px] font-semibold">Net Spend</p>
+          <p className="text-[#000000] text-[18px] font-bold">₹{(metrics?.netSpend || 0).toLocaleString()}</p>
+        </div>
+      </div>
+    </div>
+  )
+} 
