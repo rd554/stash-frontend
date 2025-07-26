@@ -127,7 +127,7 @@ export default function PersonalitySelectionPage() {
               : 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed'
           }`}
         >
-          Let's go
+          Let&apos;s go
         </button>
       </div>
       

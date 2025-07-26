@@ -11,7 +11,7 @@ interface Notification {
   severity: 'low' | 'medium' | 'high'
   isRead: boolean
   createdAt: string
-  data?: any
+  data?: Record<string, unknown>
 }
 
 interface NotificationItemProps {
