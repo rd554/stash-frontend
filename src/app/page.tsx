@@ -15,7 +15,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const handleLogin = async () => {
+  const handleLogin = async (userData: { username: string; name: string; age: string; theme: string; spendingPersonality: string }) => {
     setError('')
     setIsLoading(true)
 
@@ -102,7 +102,7 @@ export default function Home() {
                 placeholder="Username (test1, test2, test3)"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin({ username, name: '', age: '', theme: '', spendingPersonality: '' })}
                 className="w-full bg-white focus:outline-none focus:border-black text-[18px] placeholder-gray-200"
                 style={{ border: '2px solid #9CA3AF !important', padding: '0.75rem 2.5rem !important', borderRadius: '16px !important', boxSizing: 'border-box !important', color: '#000000 !important' } as any}
               />
@@ -113,7 +113,7 @@ export default function Home() {
                 placeholder="Password (test@123)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin({ username, name: '', age: '', theme: '', spendingPersonality: '' })}
                 className="w-full bg-white focus:outline-none focus:border-black text-[18px] placeholder-gray-200"
                 style={{ border: '2px solid #9CA3AF !important', padding: '0.75rem 2.5rem !important', borderRadius: '16px !important', boxSizing: 'border-box !important', color: '#000000 !important' } as any}
               />
@@ -128,7 +128,7 @@ export default function Home() {
           
           <div className="w-full">
             <button
-              onClick={handleLogin}
+              onClick={() => handleLogin({ username, name: '', age: '', theme: '', spendingPersonality: '' })}
               disabled={isLoading}
               className="w-full bg-[#000000] text-[#ffffff] text-[18px] font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               style={{ padding: '0.75rem 2.5rem !important', borderRadius: '16px !important', boxSizing: 'border-box !important' } as any}

@@ -32,7 +32,7 @@ export default function AgeSelectionPage() {
       
       <div className="w-[320px]" style={{ marginBottom: '40px' }}>
         <label className="text-[22px] md:text-[26px] lg:text-[30px] text-[#1a1a1a] block" style={{ marginBottom: '12px' }}>
-          What's your age?
+          What&apos;s your age?
         </label>
         <div className="relative age-select-container">
           <select 

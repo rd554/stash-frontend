@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api'
 
@@ -146,29 +146,7 @@ export default function NotificationsPage() {
     fetchNotifications()
   }, [router])
 
-  useEffect(() => {
-    applyFilters()
-  }, [notifications, searchTerm, filterType])
-
-  const fetchNotifications = async () => {
-    try {
-      const user = localStorage.getItem('stash-ai-user')
-      if (!user) return
-
-      const response = await apiClient.getNudges(user)
-      if (response.success && response.data) {
-        const data = response.data as any
-        setNotifications(data.nudges || [])
-        setUnreadCount(data.unreadCount || 0)
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const applyFilters = () => {
+  const applyFilters = useCallback((notifications: Notification[]) => {
     let filtered = notifications
 
     // Apply search filter
@@ -186,6 +164,28 @@ export default function NotificationsPage() {
     }
 
     setFilteredNotifications(filtered)
+  }, [searchTerm, filterType])
+
+  useEffect(() => {
+    applyFilters(notifications)
+  }, [notifications, searchTerm, filterType, applyFilters])
+
+  const fetchNotifications = async () => {
+    try {
+      const user = localStorage.getItem('stash-ai-user')
+      if (!user) return
+
+      const response = await apiClient.getNudges(user)
+      if (response.success && response.data) {
+        const data = response.data as { nudges: Notification[]; unreadCount: number }
+        setNotifications(data.nudges || [])
+        setUnreadCount(data.unreadCount || 0)
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleMarkAsRead = async (notificationId: string) => {

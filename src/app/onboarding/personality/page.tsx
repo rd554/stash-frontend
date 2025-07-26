@@ -86,9 +86,7 @@ export default function PersonalitySelectionPage() {
           <h1 className="text-[36px] md:text-[52px] lg:text-[60px] font-bold text-[#111827]">
             Help us personalize your experience
           </h1>
-          <p className="text-[22px] md:text-[26px] lg:text-[30px] text-[#6B7280] mt-4">
-            What kind of spender are you?
-          </p>
+          <p className="text-gray-600 mb-8">Let&apos;s understand your spending habits to provide personalized insights.</p>
         </div>
       </div>
       

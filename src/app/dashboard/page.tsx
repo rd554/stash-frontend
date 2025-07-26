@@ -472,7 +472,7 @@ export default function DashboardPage() {
                 Hi {user.name.length <= 3 && user.name === user.name.toUpperCase()
                   ? user.name
                   : user.name.split(' ')[0]
-                }—here's your financial snapshot 😊
+                }—here&apos;s your financial snapshot 😊
               </h1>
 
             </div>
