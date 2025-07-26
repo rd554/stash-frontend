@@ -27,7 +27,15 @@ export default function SavingsVsSpending({ user, transactions }: SavingsVsSpend
     return personalityData[user.spendingPersonality] || personalityData['Medium Spender']
   }
 
-  const getMonthlyData = () => {
+  interface MonthlyData {
+    month: string;
+    savings: number;
+    spending: number;
+    savingsHeight: number;
+    spendingHeight: number;
+  }
+
+  const getMonthlyData = (): MonthlyData[] => {
     const data = getPersonalityData()
     const months = ['Jan', 'Feb', 'Mar', 'Apr']
     

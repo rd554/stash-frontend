@@ -135,14 +135,17 @@ export default function DashboardPage() {
       
       const response = await apiClient.generateAgenticInsights(
         userId, 
-        latestTransaction ? {
+        latestTransaction ? [{
           id: latestTransaction.id,
+          userId: latestTransaction.userId,
           amount: latestTransaction.amount,
           category: latestTransaction.category,
           merchant: latestTransaction.merchant,
           date: latestTransaction.date,
-          paymentMethod: latestTransaction.paymentMode
-        } : undefined
+          paymentMode: latestTransaction.paymentMode,
+          isSimulated: latestTransaction.isSimulated,
+          createdAt: latestTransaction.createdAt
+        }] : undefined
       )
       
       if (response.success) {

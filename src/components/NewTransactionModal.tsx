@@ -30,7 +30,15 @@ export default function NewTransactionModal({
     return `${year}-${month}-${day}T${hours}:${minutes}`
   }
   
-  const [formData, setFormData] = useState({
+  interface FormData {
+    amount: string;
+    transactionName: string;
+    dateTime: string;
+    category: string;
+    paymentMethod: string;
+  }
+
+  const [formData, setFormData] = useState<FormData>({
     amount: '',
     transactionName: '',
     dateTime: getCurrentDateTimeString(), // Format for datetime-local
@@ -77,7 +85,7 @@ export default function NewTransactionModal({
     { id: 'Cash', label: 'Cash', icon: 'fas fa-money-bill-wave' }
   ]
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof FormData, value: string) => {
     // Don't allow changes to dateTime field since it's read-only
     if (field === 'dateTime') return
     

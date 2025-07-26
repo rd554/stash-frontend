@@ -53,9 +53,9 @@ export default function MetricCards({ user, transactions = [] }: MetricCardsProp
       
       if (salaryResponse.success && salaryResponse.data) {
         // The API client wraps the response, so we need to access response.data.data
-        const apiData = (salaryResponse.data as any)?.data || salaryResponse.data
+        const apiData = (salaryResponse.data as { data?: { salary: number } })?.data || salaryResponse.data
         if (apiData && typeof apiData === 'object' && 'salary' in apiData) {
-          salary = (apiData as any).salary
+          salary = (apiData as { salary: number }).salary
         }
       }
       
