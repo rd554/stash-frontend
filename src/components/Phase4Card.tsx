@@ -60,7 +60,7 @@ export default function Phase4Card({ user, refreshTrigger }: Phase4CardProps) {
 
       if (goalsRes.status === 'fulfilled' && goalsRes.value.success) {
         setGoals((goalsRes.value.data as Record<string, unknown>).goals as FinancialGoal[])
-        setHighPriorityGoals((goalsRes.value.data as Record<string, unknown>).highPriorityGoals as FinancialGoal[])
+        setHighPriorityGoals((goalsRes.value.data as Record<string, unknown>).highPriorityGoals as number)
       }
 
       setLoading(false)

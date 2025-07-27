@@ -194,12 +194,14 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
           
           // Handle double-nested response structure
           let messageContent = 'No message received'
-          if ((response.data as Record<string, unknown>).data && (response.data as Record<string, unknown>).data && typeof (response.data as Record<string, unknown>).data === 'object' && (response.data as Record<string, unknown>).data && 'message' in (response.data as Record<string, unknown>).data) {
+          const responseData = response.data as Record<string, unknown>
+          const nestedData = responseData.data as Record<string, unknown> | undefined
+          if (nestedData && typeof nestedData === 'object' && 'message' in nestedData) {
             // Double-nested structure: response.data.data.message
-            messageContent = String((response.data as Record<string, unknown>).data?.message || '')
-          } else if ((response.data as Record<string, unknown>).message) {
+            messageContent = String(nestedData.message || '')
+          } else if (responseData.message) {
             // Single-nested structure: response.data.message
-            messageContent = String((response.data as Record<string, unknown>).message || '')
+            messageContent = String(responseData.message || '')
           }
           
           const aiMessage: ChatMessage = {
@@ -221,12 +223,13 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
           if (fallbackResponse.success && fallbackResponse.data && typeof fallbackResponse.data === 'object') {
             const data = fallbackResponse.data as Record<string, unknown>
             if (data.aiMessage) {
+              const aiMessage = data.aiMessage as Record<string, unknown>
               const aiMessageWithDate = {
-                id: data.aiMessage._id || (Date.now() + 1).toString(),
-                userId: data.aiMessage.userId,
-                message: data.aiMessage.message,
+                id: String(aiMessage._id) || (Date.now() + 1).toString(),
+                userId: String(aiMessage.userId),
+                message: String(aiMessage.message),
                 isUser: false,
-                timestamp: new Date(data.aiMessage.timestamp)
+                timestamp: new Date(String(aiMessage.timestamp))
               }
               setMessages(prev => [...prev, aiMessageWithDate])
             }
@@ -241,12 +244,13 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
         if (response.success && response.data && typeof response.data === 'object') {
           const data = response.data as Record<string, unknown>
           if (data.aiMessage) {
+            const aiMessage = data.aiMessage as Record<string, unknown>
             const aiMessageWithDate = {
-              id: data.aiMessage._id || (Date.now() + 1).toString(),
-              userId: data.aiMessage.userId,
-              message: data.aiMessage.message,
+              id: String(aiMessage._id) || (Date.now() + 1).toString(),
+              userId: String(aiMessage.userId),
+              message: String(aiMessage.message),
               isUser: false,
-              timestamp: new Date(data.aiMessage.timestamp)
+              timestamp: new Date(String(aiMessage.timestamp))
             }
             setMessages(prev => [...prev, aiMessageWithDate])
           }
