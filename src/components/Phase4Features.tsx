@@ -80,22 +80,22 @@ export default function Phase4Features({ user, refreshTrigger }: Phase4FeaturesP
 
       // Handle budget optimizations
       if (optimizationsRes.status === 'fulfilled' && optimizationsRes.value.success) {
-        setOptimizations(optimizationsRes.value.data.optimizations)
+        setOptimizations((optimizationsRes.value.data as any).optimizations)
       }
 
       // Handle financial goals
       if (goalsRes.status === 'fulfilled' && goalsRes.value.success) {
-        setGoals(goalsRes.value.data.goals)
+        setGoals((goalsRes.value.data as any).goals)
       }
 
       // Handle personalized insights
       if (insightsRes.status === 'fulfilled' && insightsRes.value.success) {
-        setInsights(insightsRes.value.data.insights)
+        setInsights((insightsRes.value.data as any).insights)
       }
 
       // Handle financial education
       if (educationRes.status === 'fulfilled' && educationRes.value.success) {
-        setEducation(educationRes.value.data.education)
+        setEducation((educationRes.value.data as any).education)
       }
 
       setLoading(false)

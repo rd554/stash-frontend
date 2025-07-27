@@ -1,6 +1,7 @@
 'use client'
 
 import { User, Transaction } from '@/types'
+import { useMemo } from 'react'
 
 interface SavingsVsSpendingProps {
   user: User | null
@@ -35,12 +36,9 @@ export default function SavingsVsSpending({ user, transactions }: SavingsVsSpend
     spendingHeight: number;
   }
 
-  const getMonthlyData = (): MonthlyData[] => {
+  const monthlyData = useMemo(() => {
     const data = getPersonalityData()
     const months = ['Jan', 'Feb', 'Mar', 'Apr']
-    
-    // Calculate total spending from transactions
-    const totalSpent = transactions.reduce((sum, txn) => sum + txn.amount, 0)
     
     // For demo purposes, we'll show consistent data across months
     // In a real app, this would be historical monthly data
@@ -68,9 +66,7 @@ export default function SavingsVsSpending({ user, transactions }: SavingsVsSpend
         spendingHeight: Math.max(spendingHeight, 10)
       }
     })
-  }
-
-  const monthlyData = getMonthlyData()
+  }, [user, transactions])
 
   return (
     <div className="bg-white border-[1px] border-[#d1d5db] rounded-[8px] p-4 w-[300px]">

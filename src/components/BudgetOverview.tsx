@@ -114,7 +114,7 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
       }
       
       // The API client wraps the response, so we need to access response.data.data
-      const apiData = response.data.data || response.data
+      const apiData = (response.data as any).data || response.data
       const allTransactions = apiData.transactions || []
       console.log('Total transactions for budget calculation:', allTransactions.length)
       console.log('Manual transactions count:', apiData.manualCount)
@@ -194,17 +194,19 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
     
     Object.keys(defaultCaps).forEach(category => {
       const amount = categoryTotals[category] || 0
-      const budgetCap = defaultCaps[category]
-      const percentage = budgetCap > 0 ? (amount / budgetCap) * 100 : 0
-      const isOverBudget = amount > budgetCap
-      
-      budgetData.push({
-        category,
-        amount,
-        budgetCap,
-        percentage: Math.round(percentage * 100) / 100,
-        isOverBudget
-      })
+      const budgetCap = defaultCaps[category as keyof typeof defaultCaps]
+      if (budgetCap !== undefined) {
+        const percentage = budgetCap > 0 ? (amount / budgetCap) * 100 : 0
+        const isOverBudget = amount > budgetCap
+        
+        budgetData.push({
+          category,
+          amount,
+          budgetCap,
+          percentage: Math.round(percentage * 100) / 100,
+          isOverBudget
+        })
+      }
     })
 
     return budgetData

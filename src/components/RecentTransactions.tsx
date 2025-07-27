@@ -186,7 +186,7 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
           console.log('Rendering transaction:', transaction)
           const categoryData = getCategoryIcon(transaction.category)
           const amountData = formatAmount(transaction.amount, transaction.category)
-          const paymentModeData = getPaymentModeDisplay(transaction.paymentMethod)
+          const paymentModeData = getPaymentModeDisplay(transaction.paymentMode)
           
           console.log('Category data:', categoryData)
           console.log('Amount data:', amountData)

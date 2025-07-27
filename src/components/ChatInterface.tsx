@@ -188,18 +188,18 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
         
         if (response.success && response.data) {
           console.log('Response data structure:', response.data)
-          console.log('Response.data.message:', response.data.message)
+          console.log('Response.data.message:', (response.data as any).message)
           console.log('Response.data type:', typeof response.data)
           console.log('Response.data keys:', Object.keys(response.data))
           
           // Handle double-nested response structure
           let messageContent = 'No message received'
-          if (response.data.data && response.data.data.message) {
+          if ((response.data as any).data && (response.data as any).data.message) {
             // Double-nested structure: response.data.data.message
-            messageContent = response.data.data.message
-          } else if (response.data.message) {
+            messageContent = (response.data as any).data.message
+          } else if ((response.data as any).message) {
             // Single-nested structure: response.data.message
-            messageContent = response.data.message
+            messageContent = (response.data as any).message
           }
           
           const aiMessage: ChatMessage = {
