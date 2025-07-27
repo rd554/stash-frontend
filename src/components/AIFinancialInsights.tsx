@@ -121,7 +121,7 @@ export default function AIFinancialInsights({ user, onGetTips, refreshTrigger }:
         
         if (response.success && response.data && typeof response.data === 'object' && 'data' in response.data && Array.isArray(response.data.data)) {
           console.log('🔍 AI INSIGHTS DEBUG: Setting regular insights:', response.data.data)
-          setInsights(response.data.data as Insight[])
+          setInsights(response.data.data as unknown as Insight[])
         } else {
           console.log('🔍 AI INSIGHTS DEBUG: API failed, using fallback insights')
           setInsights(getFallbackInsights())

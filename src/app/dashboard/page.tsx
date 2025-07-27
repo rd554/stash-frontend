@@ -66,7 +66,7 @@ export default function DashboardPage() {
   // Handle clicking outside avatar dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
+      const target = event.target as unknown as HTMLElement
       if (!target.closest('.avatar-dropdown-container')) {
         setShowAvatarDropdown(false)
       }
