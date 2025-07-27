@@ -245,8 +245,7 @@ export default function DashboardPage() {
   }
 
   const handleTransactionAdded = () => {
-    loadTransactions(user?.username || '', user?.spendingPersonality || 'medium')
-    loadNudges(user?.username || '')
+    loadTransactions(user?.username || '')
     // Trigger insight refresh by updating context trigger
     setContextUpdateTrigger(prev => prev + 1)
   }
