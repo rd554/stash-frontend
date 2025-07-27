@@ -66,7 +66,7 @@ export default function DashboardPage() {
   // Handle clicking outside avatar dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as unknown as HTMLElement
+      const target = event.target as Element
       if (!target.closest('.avatar-dropdown-container')) {
         setShowAvatarDropdown(false)
       }
@@ -91,13 +91,13 @@ export default function DashboardPage() {
       if (response.success && response.data) {
         // The API client wraps the response, so we need to access response.data.data
         const apiData = (response.data && typeof response.data === 'object' && 'data' in response.data)
-          ? (response.data as Record<string, unknown>).data as { transactions: Transaction[]; manualCount: number; personaCount: number }
-          : response.data as { transactions: Transaction[]; manualCount: number; personaCount: number }
-        const allTransactions = apiData.transactions || []
+          ? (response.data as Record<string, unknown>).data as Record<string, unknown>
+          : response.data as Record<string, unknown>
+        const allTransactions = (apiData.transactions as Transaction[]) || []
         
         console.log('Loaded transactions:', allTransactions.length)
-        console.log('Manual transactions:', apiData.manualCount)
-        console.log('Persona transactions:', apiData.personaCount)
+        console.log('Manual transactions:', apiData.manualCount as number)
+        console.log('Persona transactions:', apiData.personaCount as number)
         
         setTransactions(allTransactions)
         
