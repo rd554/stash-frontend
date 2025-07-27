@@ -88,7 +88,7 @@ export default function AIFinancialInsights({ user, onGetTips, refreshTrigger }:
             insightId: insight.insightId,
             title: insight.title,
             insightCategory: insightCategory
-          } as Insight;
+          } as unknown as Insight;
         })
         
         // Remove duplicate insights based on type and content
