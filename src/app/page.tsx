@@ -69,7 +69,7 @@ export default function Home() {
     <div className="bg-[#ffffff] h-screen login-page">
             {/* Logo and Branding - Top Left */}
             <div className="absolute top-4 left-4">
-        <div className="flex items-center gap-0">
+        <div className="flex items-center gap-0" style={{ paddingLeft: '16px' }}>
           <h1 className="text-2xl font-bold text-[#000000]">
             Stash AI
           </h1>
