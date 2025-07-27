@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { TestUser } from '@/types'
 import { apiClient } from '@/lib/api'
@@ -71,11 +70,9 @@ export default function Home() {
       {/* Logo and Branding - Top Left */}
       <div className="absolute top-4 left-4">
         <div className="flex items-center gap-0">
-          <Image 
+          <img 
             src="/stash_logo.png" 
             alt="Stash AI Logo" 
-            width={60} 
-            height={60} 
             className="w-16 h-16"
             style={{ width: '64px', height: '64px' }}
           />

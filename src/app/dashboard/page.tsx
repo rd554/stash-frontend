@@ -7,7 +7,6 @@ import FloatingChatbot from '@/components/FloatingChatbot'
 import NewTransactionModal from '@/components/NewTransactionModal'
 import { apiClient } from '@/lib/api'
 import { MonthlyReset } from '@/lib/monthlyReset'
-import Image from 'next/image'
 import MetricCards from '@/components/MetricCards'
 import AIFinancialInsights from '@/components/AIFinancialInsights'
 import WeeklySpending from '@/components/WeeklySpending'
@@ -298,11 +297,9 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-0">
-              <Image 
+              <img 
                 src="/stash_logo.png" 
                 alt="Stash AI Logo" 
-                width={60} 
-                height={60} 
                 className="w-16 h-16"
               />
               <h1 className="text-2xl font-bold text-[#000000]" style={{ marginLeft: '-16px' }}>
