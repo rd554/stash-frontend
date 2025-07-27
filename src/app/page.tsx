@@ -40,11 +40,11 @@ export default function Home() {
       
       console.log('Login response:', response)
       
-      if (response.success && response.data && (response.data as { user: { username: string; name: string; age: number; theme: string; spendingPersonality: string } }).user) {
+      if (response.success && response.data) {
         // User exists - store user info and redirect to dashboard
         console.log('User exists, redirecting to dashboard')
         localStorage.setItem('stash-ai-user', username)
-        localStorage.setItem('stash-ai-user-data', JSON.stringify((response.data as { user: { username: string; name: string; age: number; theme: string; spendingPersonality: string } }).user))
+        localStorage.setItem('stash-ai-user-data', JSON.stringify(response.data))
         router.push('/dashboard')
       } else if (!response.success && response.error && response.error.includes('not found')) {
         // User doesn't exist, redirect to onboarding
