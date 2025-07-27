@@ -70,12 +70,7 @@ export default function Home() {
             {/* Logo and Branding - Top Left */}
             <div className="absolute top-4 left-4">
         <div className="flex items-center gap-0">
-        <img 
-          src="/stashai_logo.svg" 
-          alt="Stash AI Logo" 
-          className="w-16 h-16"
-        />
-          <h1 className="text-2xl font-bold text-[#000000]" style={{ marginLeft: '-16px' }}>
+          <h1 className="text-2xl font-bold text-[#000000]">
             Stash AI
           </h1>
         </div>
