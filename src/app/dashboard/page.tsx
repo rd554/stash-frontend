@@ -297,10 +297,11 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-0">
-              <img 
-                src="/stash_ai_logo.svg" 
-                alt="Stash AI Logo" 
+              <img
+                src="data:image/svg+xml;base64,PASTE_YOUR_BASE64_HERE"
+                alt="Stash AI Logo"
                 className="w-16 h-16"
+                style={{ width: '64px', height: '64px' }}
               />
               <h1 className="text-2xl font-bold text-[#000000]" style={{ marginLeft: '-16px' }}>
                 Stash AI
