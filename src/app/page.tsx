@@ -71,7 +71,7 @@ export default function Home() {
       <div className="absolute top-4 left-4">
         <div className="flex items-center gap-0">
           <img 
-            src="/stash_logo.png" 
+            src="/stash_ai_logo.svg" 
             alt="Stash AI Logo" 
             className="w-16 h-16"
             style={{ width: '64px', height: '64px' }}

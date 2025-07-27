@@ -298,7 +298,7 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-0">
               <img 
-                src="/stash_logo.png" 
+                src="/stash_ai_logo.svg" 
                 alt="Stash AI Logo" 
                 className="w-16 h-16"
               />
