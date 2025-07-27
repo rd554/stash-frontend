@@ -20,11 +20,8 @@ export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [showChat, setShowChat] = useState(false)
   const [showNewTransactionModal, setShowNewTransactionModal] = useState(false)
-  const [unreadNudges, setUnreadNudges] = useState(0)
   const [showAvatarDropdown, setShowAvatarDropdown] = useState(false)
-  const [messages, setMessages] = useState<{ id: string; message: string; isUser: boolean; timestamp: Date }[]>([])
   const [inputMessage, setInputMessage] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [contextUpdateTrigger, setContextUpdateTrigger] = useState(0)
   const router = useRouter()
 
@@ -50,13 +47,7 @@ export default function DashboardPage() {
     }
     setUser(userObj)
 
-    // Initialize chat with welcome message
-    setMessages([{
-      id: '1',
-      message: `Hi ${parsedUserData.name}! I'm your Stash AI financial coach. I can help you with budgeting, savings goals, spending analysis, and financial advice. What would you like to know?`,
-      isUser: false,
-      timestamp: new Date()
-    }])
+
 
     // Check for monthly reset and load data
     const initializeDashboard = async () => {
@@ -67,8 +58,7 @@ export default function DashboardPage() {
       }
       
       // Load transactions from API
-      loadTransactions(username, parsedUserData.spendingPersonality)
-      loadNudges(username)
+      loadTransactions(username)
     }
     
     initializeDashboard()
@@ -92,7 +82,7 @@ export default function DashboardPage() {
     }
   }, [showAvatarDropdown])
 
-  const loadTransactions = async (userId: string, userSpendingPersonality: string) => {
+  const loadTransactions = async (userId: string) => {
     try {
       console.log('Loading transactions for user:', userId)
       
@@ -158,10 +148,9 @@ export default function DashboardPage() {
 
   const loadPersonaTransactions = async (spendingPersonality: string, currentDate: string) => {
     try {
-      // Map spending personality to user type
       const userTypeMapping: { [key: string]: string } = {
         'Heavy Spender': 'heavy',
-        'Medium Spender': 'medium', 
+        'Medium Spender': 'medium',
         'Max Saver': 'max'
       }
       
@@ -194,17 +183,6 @@ export default function DashboardPage() {
   // Manual transactions are now handled by the backend API
   // No need for localStorage logic anymore
 
-  const loadNudges = async (userId: string) => {
-    try {
-      const response = await apiClient.getNudges(userId, true)
-      if (response.success && response.data && typeof response.data === 'object' && 'unreadCount' in response.data) {
-        setUnreadNudges((response.data as { unreadCount: number }).unreadCount || 0)
-      }
-    } catch (error) {
-      console.error('Failed to load nudges:', error)
-    }
-  }
-
   const getPersonalityData = () => {
     if (!user) return { salary: 100000, emi: 15000, savings: 20000, emergencyFund: 75000 }
     
@@ -217,19 +195,6 @@ export default function DashboardPage() {
     return personalityData[user.spendingPersonality] || personalityData['Medium Spender']
   }
 
-  const getTotalSpent = () => {
-    return transactions.reduce((sum, txn) => sum + txn.amount, 0)
-  }
-
-  const getNetSpend = () => {
-    const data = getPersonalityData()
-    return data.salary - data.emi - data.savings
-  }
-
-  const getRecentTransactions = () => {
-    return transactions.slice(0, 5)
-  }
-
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !user) return
 
@@ -239,45 +204,24 @@ export default function DashboardPage() {
       isUser: true,
       timestamp: new Date()
     }
-    setMessages((prev) => [...prev, newMessage])
     setInputMessage('')
-    setIsLoading(true)
 
     try {
       const response = await apiClient.sendMessage(user.username, newMessage.message)
       if (response.success && response.data && typeof response.data === 'object' && 'aiMessage' in response.data) {
         const aiMessage = (response.data as { aiMessage: { id: string; message: string; timestamp: string } }).aiMessage
-        setMessages((prev) => [...prev, {
-          id: aiMessage.id || Date.now().toString(),
-          message: aiMessage.message || 'Sorry, I encountered an error.',
-          isUser: false,
-          timestamp: new Date(aiMessage.timestamp) || new Date()
-        }])
+        // Handle AI response if needed
       } else {
         // Fallback AI response
-        setMessages((prev) => [...prev, {
-          id: Date.now().toString(),
-          message: 'Thanks for your message! How can I help you with your finances today?',
-          isUser: false,
-          timestamp: new Date()
-        }])
       }
     } catch (error) {
       console.error('Failed to send message:', error)
-      // Add a friendly error message
-      setMessages((prev) => [...prev, {
-        id: Date.now().toString(),
-        message: 'Sorry, I\'m having trouble connecting. Please try again later.',
-        isUser: false,
-        timestamp: new Date()
-      }])
-    } finally {
-      setIsLoading(false)
     }
   }
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
       handleSendMessage()
     }
   }

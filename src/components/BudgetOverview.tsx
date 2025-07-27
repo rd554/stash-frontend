@@ -114,7 +114,7 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
       }
       
       // The API client wraps the response, so we need to access response.data.data
-      const apiData = (response.data as any).data || response.data
+      const apiData = (response.data as Record<string, unknown>).data || response.data
       const allTransactions = apiData.transactions || []
       console.log('Total transactions for budget calculation:', allTransactions.length)
       console.log('Manual transactions count:', apiData.manualCount)

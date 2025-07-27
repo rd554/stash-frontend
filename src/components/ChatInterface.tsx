@@ -188,18 +188,18 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
         
         if (response.success && response.data) {
           console.log('Response data structure:', response.data)
-          console.log('Response.data.message:', (response.data as any).message)
+          console.log('Response.data.message:', (response.data as Record<string, unknown>).message)
           console.log('Response.data type:', typeof response.data)
           console.log('Response.data keys:', Object.keys(response.data))
           
           // Handle double-nested response structure
           let messageContent = 'No message received'
-          if ((response.data as any).data && (response.data as any).data.message) {
+          if ((response.data as Record<string, unknown>).data && (response.data as Record<string, unknown>).data && typeof (response.data as Record<string, unknown>).data === 'object' && (response.data as Record<string, unknown>).data && 'message' in (response.data as Record<string, unknown>).data) {
             // Double-nested structure: response.data.data.message
-            messageContent = (response.data as any).data.message
-          } else if ((response.data as any).message) {
+            messageContent = String((response.data as Record<string, unknown>).data?.message || '')
+          } else if ((response.data as Record<string, unknown>).message) {
             // Single-nested structure: response.data.message
-            messageContent = (response.data as any).message
+            messageContent = String((response.data as Record<string, unknown>).message || '')
           }
           
           const aiMessage: ChatMessage = {
@@ -219,7 +219,7 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
           console.log('Fallback chat response:', fallbackResponse)
           
           if (fallbackResponse.success && fallbackResponse.data && typeof fallbackResponse.data === 'object') {
-            const data = fallbackResponse.data as any
+            const data = fallbackResponse.data as Record<string, unknown>
             if (data.aiMessage) {
               const aiMessageWithDate = {
                 id: data.aiMessage._id || (Date.now() + 1).toString(),
@@ -239,7 +239,7 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
         console.log('Regular chat response:', response)
         
         if (response.success && response.data && typeof response.data === 'object') {
-          const data = response.data as any
+          const data = response.data as Record<string, unknown>
           if (data.aiMessage) {
             const aiMessageWithDate = {
               id: data.aiMessage._id || (Date.now() + 1).toString(),

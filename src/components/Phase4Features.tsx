@@ -80,22 +80,22 @@ export default function Phase4Features({ user, refreshTrigger }: Phase4FeaturesP
 
       // Handle budget optimizations
       if (optimizationsRes.status === 'fulfilled' && optimizationsRes.value.success) {
-        setOptimizations((optimizationsRes.value.data as any).optimizations)
+        setOptimizations((optimizationsRes.value.data as Record<string, unknown>).optimizations as BudgetOptimization[])
       }
 
       // Handle financial goals
       if (goalsRes.status === 'fulfilled' && goalsRes.value.success) {
-        setGoals((goalsRes.value.data as any).goals)
+        setGoals((goalsRes.value.data as Record<string, unknown>).goals as FinancialGoal[])
       }
 
       // Handle personalized insights
       if (insightsRes.status === 'fulfilled' && insightsRes.value.success) {
-        setInsights((insightsRes.value.data as any).insights)
+        setInsights((insightsRes.value.data as Record<string, unknown>).insights as PersonalizedInsight[])
       }
 
       // Handle financial education
       if (educationRes.status === 'fulfilled' && educationRes.value.success) {
-        setEducation((educationRes.value.data as any).education)
+        setEducation((educationRes.value.data as Record<string, unknown>).education as FinancialEducation[])
       }
 
       setLoading(false)
@@ -165,7 +165,7 @@ export default function Phase4Features({ user, refreshTrigger }: Phase4FeaturesP
         ].map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
+            onClick={() => setActiveTab(tab.key as 'budget' | 'goals' | 'insights' | 'education')}
             className={`flex items-center px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab.key
                 ? 'border-[#A855F7] text-[#A855F7]'

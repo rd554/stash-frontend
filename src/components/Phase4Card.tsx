@@ -54,13 +54,13 @@ export default function Phase4Card({ user, refreshTrigger }: Phase4CardProps) {
       ])
 
       if (optimizationsRes.status === 'fulfilled' && optimizationsRes.value.success) {
-        setOptimizations((optimizationsRes.value.data as any).optimizations)
-        setTotalPotentialSavings((optimizationsRes.value.data as any).totalPotentialSavings)
+        setOptimizations((optimizationsRes.value.data as Record<string, unknown>).optimizations as BudgetOptimization[])
+        setTotalPotentialSavings((optimizationsRes.value.data as Record<string, unknown>).totalPotentialSavings as number)
       }
 
       if (goalsRes.status === 'fulfilled' && goalsRes.value.success) {
-        setGoals((goalsRes.value.data as any).goals)
-        setHighPriorityGoals((goalsRes.value.data as any).highPriorityGoals)
+        setGoals((goalsRes.value.data as Record<string, unknown>).goals as FinancialGoal[])
+        setHighPriorityGoals((goalsRes.value.data as Record<string, unknown>).highPriorityGoals as FinancialGoal[])
       }
 
       setLoading(false)
