@@ -297,46 +297,11 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-0">
-              <svg 
-                width="64" 
-                height="64" 
-                viewBox="0 0 400 400" 
+              <img 
+                src="/stashai_logo.svg" 
+                alt="Stash AI Logo" 
                 className="w-16 h-16"
-              >
-                {/* Main wallet body - rounded rectangle */}
-                <path 
-                  d="M90 180 Q90 150 120 150 L300 150 Q330 150 330 180 L330 220 L350 220 L350 250 L330 250 L330 320 Q330 350 300 350 L120 350 Q90 350 90 320 Z" 
-                  fill="#1DB584"
-                />
-                
-                {/* Wallet flap - curved organic shape */}
-                <path 
-                  d="M200 80 Q230 80 260 90 Q290 100 310 125 Q330 150 330 180 L330 220 L300 220 Q280 220 260 200 Q240 180 220 160 Q200 140 200 120 L200 80 Z" 
-                  fill="#0F8A5F"
-                />
-                
-                {/* Button/clasp area - rounded */}
-                <path 
-                  d="M330 200 Q350 200 350 220 L350 270 Q350 290 330 290 L330 270 L330 220 Z" 
-                  fill="#0F8A5F"
-                />
-                
-                {/* Button outer ring */}
-                <circle 
-                  cx="340" 
-                  cy="245" 
-                  r="20" 
-                  fill="#0F8A5F"
-                />
-                
-                {/* Button inner circle */}
-                <circle 
-                  cx="340" 
-                  cy="245" 
-                  r="12" 
-                  fill="#1DB584"
-                />
-              </svg>
+              />
               <h1 className="text-2xl font-bold text-[#000000]" style={{ marginLeft: '-16px' }}>
                 Stash AI
               </h1>
