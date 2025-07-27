@@ -10,7 +10,7 @@ export function getTheme() {
   return 'light'
 }
 
-export function setTheme(theme: 'light') {
+export function setTheme() {
   if (typeof window !== 'undefined') {
     localStorage.setItem('stash-ai-theme', 'light')
     // Always remove dark class since we only support light theme

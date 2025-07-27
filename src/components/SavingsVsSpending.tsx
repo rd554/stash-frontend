@@ -1,11 +1,12 @@
 'use client'
 
-import { User, Transaction } from '@/types'
-import { useMemo } from 'react'
+import { User } from '@/types'
+import { useMemo, useCallback } from 'react'
 
 interface SavingsVsSpendingProps {
   user: User | null
-  transactions: Transaction[]
+  // Remove unused transactions parameter
+  // transactions: Transaction[]
 }
 
 interface PersonalityData {
@@ -15,8 +16,8 @@ interface PersonalityData {
   emergencyFund: number
 }
 
-export default function SavingsVsSpending({ user, transactions }: SavingsVsSpendingProps) {
-  const getPersonalityData = (): PersonalityData => {
+export default function SavingsVsSpending({ user }: SavingsVsSpendingProps) {
+  const getPersonalityData = useCallback((): PersonalityData => {
     if (!user) return { salary: 100000, emi: 15000, savings: 20000, emergencyFund: 75000 }
     
     const personalityData = {
@@ -26,15 +27,7 @@ export default function SavingsVsSpending({ user, transactions }: SavingsVsSpend
     }
     
     return personalityData[user.spendingPersonality] || personalityData['Medium Spender']
-  }
-
-  interface MonthlyData {
-    month: string;
-    savings: number;
-    spending: number;
-    savingsHeight: number;
-    spendingHeight: number;
-  }
+  }, [user])
 
   const monthlyData = useMemo(() => {
     const data = getPersonalityData()
@@ -66,14 +59,14 @@ export default function SavingsVsSpending({ user, transactions }: SavingsVsSpend
         spendingHeight: Math.max(spendingHeight, 10)
       }
     })
-  }, [user, transactions])
+  }, [getPersonalityData])
 
   return (
     <div className="bg-white border-[1px] border-[#d1d5db] rounded-[8px] p-4 w-[300px]">
       <h2 className="text-[#000000] font-bold text-[16px] mb-4">Savings vs Spending</h2>
       
       <div className="flex justify-between items-end mb-4 h-[120px]">
-        {monthlyData.map((data, index) => (
+        {monthlyData.map((data) => (
           <div key={data.month} className="flex flex-col items-center">
             <div className="flex flex-col justify-end h-[100px]">
               {/* Savings bar (green, on top) */}
@@ -106,4 +99,4 @@ export default function SavingsVsSpending({ user, transactions }: SavingsVsSpend
       </div>
     </div>
   )
-} 
+}

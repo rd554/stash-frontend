@@ -87,7 +87,7 @@ export class BudgetCapStorage {
               if (this.isExpired(data)) {
                 keysToRemove.push(key);
               }
-            } catch (error) {
+            } catch {
               // Invalid data, remove it
               keysToRemove.push(key);
             }

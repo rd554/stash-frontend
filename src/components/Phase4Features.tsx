@@ -1,7 +1,7 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import { User } from '@/types'
-import { useState, useEffect } from 'react'
 import { apiClient } from '@/lib/api'
 
 interface Phase4FeaturesProps {
@@ -52,20 +52,14 @@ interface FinancialEducation {
 }
 
 export default function Phase4Features({ user, refreshTrigger }: Phase4FeaturesProps) {
+  const [activeTab, setActiveTab] = useState<'optimizations' | 'goals' | 'insights' | 'education'>('optimizations')
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'budget' | 'goals' | 'insights' | 'education'>('budget')
   const [optimizations, setOptimizations] = useState<BudgetOptimization[]>([])
   const [goals, setGoals] = useState<FinancialGoal[]>([])
   const [insights, setInsights] = useState<PersonalizedInsight[]>([])
   const [education, setEducation] = useState<FinancialEducation[]>([])
 
-  useEffect(() => {
-    if (user) {
-      loadPhase4Data()
-    }
-  }, [user, refreshTrigger])
-
-  const loadPhase4Data = async () => {
+  const loadPhase4Data = useCallback(async () => {
     try {
       setLoading(true)
       console.log('🚀 PHASE 4: Loading advanced AI features for user:', user.username)
@@ -103,7 +97,13 @@ export default function Phase4Features({ user, refreshTrigger }: Phase4FeaturesP
       console.error('Error loading Phase 4 data:', error)
       setLoading(false)
     }
-  }
+  }, [user.username])
+
+  useEffect(() => {
+    if (user) {
+      loadPhase4Data()
+    }
+  }, [user, refreshTrigger, loadPhase4Data])
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -158,14 +158,14 @@ export default function Phase4Features({ user, refreshTrigger }: Phase4FeaturesP
       {/* Tab Navigation */}
       <div className="flex border-b border-gray-200 px-6">
         {[
-          { key: 'budget', label: 'Budget AI', icon: '🤖' },
+          { key: 'optimizations', label: 'Budget AI', icon: '🤖' },
           { key: 'goals', label: 'Smart Goals', icon: '🎯' },
           { key: 'insights', label: 'AI Insights', icon: '🧠' },
           { key: 'education', label: 'Learn', icon: '📚' }
         ].map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key as 'budget' | 'goals' | 'insights' | 'education')}
+            onClick={() => setActiveTab(tab.key as 'optimizations' | 'goals' | 'insights' | 'education')}
             className={`flex items-center px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab.key
                 ? 'border-[#A855F7] text-[#A855F7]'
@@ -180,7 +180,7 @@ export default function Phase4Features({ user, refreshTrigger }: Phase4FeaturesP
 
       {/* Tab Content */}
       <div className="p-6">
-        {activeTab === 'budget' && (
+        {activeTab === 'optimizations' && (
           <div>
             <h3 className="text-lg font-semibold mb-4">AI Budget Optimization</h3>
             {optimizations.length > 0 ? (

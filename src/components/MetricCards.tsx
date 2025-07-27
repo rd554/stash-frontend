@@ -1,7 +1,7 @@
 'use client'
 
 import { User, Transaction } from '@/types'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { apiClient } from '@/lib/api'
 import { Edit2 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -31,58 +31,19 @@ export default function MetricCards({ user, transactions = [] }: MetricCardsProp
   const [editing, setEditing] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
 
-  useEffect(() => {
-    if (user) {
-      loadSalaryAndMetrics()
-    } else {
-      // Initialize with fallback metrics if no user
-      const fallbackMetrics = getFallbackMetrics()
-      setMetrics(fallbackMetrics)
-      setCurrentSalary(fallbackMetrics.salary) // Update current salary
-    }
-  }, [user, transactions]) // Add transactions to dependency array
-
-  const loadSalaryAndMetrics = async () => {
-    if (!user) return
+  const getFallbackMetrics = useCallback((): FinancialMetrics => {
+    if (!user) return { salary: 100000, emi: 15000, savings: 20000, netSpend: 65000, totalSpent: 0 }
     
-    try {
-      // Load salary from database
-      const salaryResponse = await apiClient.getSalary(user.username)
-      
-      let salary = 100000 // Default salary
-      
-      if (salaryResponse.success && salaryResponse.data) {
-        // The API client wraps the response, so we need to access response.data.data
-        const apiData = (salaryResponse.data as { data?: { salary: number } })?.data || salaryResponse.data
-        if (apiData && typeof apiData === 'object' && 'salary' in apiData) {
-          salary = (apiData as { salary: number }).salary
-        }
-      }
-      
-      setCurrentSalary(salary)
-      
-      if (transactions.length > 0) {
-        // Calculate metrics from actual transactions with database salary
-        const calculatedMetrics = calculateMetricsFromTransactions(transactions, salary)
-        setMetrics(calculatedMetrics)
-      } else {
-        // Fallback to API or static data
-        const fallbackMetrics = getFallbackMetrics()
-        fallbackMetrics.salary = salary // Use database salary
-        fallbackMetrics.netSpend = salary - fallbackMetrics.emi - fallbackMetrics.savings
-        setMetrics(fallbackMetrics)
-        loadFinancialMetrics()
-      }
-    } catch (error) {
-      console.error('Error loading salary and metrics:', error)
-      // Fallback to default
-      const fallbackMetrics = getFallbackMetrics()
-      setMetrics(fallbackMetrics)
-      setCurrentSalary(fallbackMetrics.salary)
+    const personalityData = {
+      'Heavy Spender': { salary: 100000, emi: 35000, savings: 2000, netSpend: 63000, totalSpent: 0 },
+      'Medium Spender': { salary: 100000, emi: 15000, savings: 20000, netSpend: 65000, totalSpent: 0 },
+      'Max Saver': { salary: 100000, emi: 5000, savings: 40000, netSpend: 55000, totalSpent: 0 }
     }
-  }
+    
+    return personalityData[user.spendingPersonality] || personalityData['Medium Spender']
+  }, [user])
 
-  const loadFinancialMetrics = async () => {
+  const loadFinancialMetrics = useCallback(async () => {
     if (!user) return
     
     try {
@@ -107,9 +68,9 @@ export default function MetricCards({ user, transactions = [] }: MetricCardsProp
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
-  const calculateMetricsFromTransactions = (transactionList: Transaction[], salaryOverride?: number): FinancialMetrics => {
+  const calculateMetricsFromTransactions = useCallback((transactionList: Transaction[], salaryOverride?: number): FinancialMetrics => {
     const salaryToUse = salaryOverride || currentSalary
     
     // Get current date to filter transactions up to today
@@ -166,43 +127,58 @@ export default function MetricCards({ user, transactions = [] }: MetricCardsProp
     
     console.log('Calculated metrics:', calculatedMetrics)
     return calculatedMetrics
-  }
+  }, [user, currentSalary])
 
-  const getFallbackMetrics = (): FinancialMetrics => {
-    const persona = user?.spendingPersonality || 'Medium Spender'
-    console.log('Getting fallback metrics for persona:', persona)
+  const loadSalaryAndMetrics = useCallback(async () => {
+    if (!user) return
     
-    let fallbackMetrics: FinancialMetrics
-    
-    if (persona === 'Heavy Spender') {
-      fallbackMetrics = {
-        salary: 100000,
-        emi: 45000,
-        savings: 5000,
-        netSpend: 50000,
-        totalSpent: 125000
+    try {
+      // Load salary from database
+      const salaryResponse = await apiClient.getSalary(user.username)
+      
+      let salary = 100000 // Default salary
+      
+      if (salaryResponse.success && salaryResponse.data) {
+        // The API client wraps the response, so we need to access response.data.data
+        const apiData = (salaryResponse.data as { data?: { salary: number } })?.data || salaryResponse.data
+        if (apiData && typeof apiData === 'object' && 'salary' in apiData) {
+          salary = (apiData as { salary: number }).salary
+        }
       }
-    } else if (persona === 'Medium Spender') {
-      fallbackMetrics = {
-        salary: 100000,
-        emi: 20000,
-        savings: 20000,
-        netSpend: 60000,
-        totalSpent: 80000
+      
+      setCurrentSalary(salary)
+      
+      if (transactions.length > 0) {
+        // Calculate metrics from actual transactions with database salary
+        const calculatedMetrics = calculateMetricsFromTransactions(transactions, salary)
+        setMetrics(calculatedMetrics)
+      } else {
+        // Fallback to API or static data
+        const fallbackMetrics = getFallbackMetrics()
+        fallbackMetrics.salary = salary // Use database salary
+        fallbackMetrics.netSpend = salary - fallbackMetrics.emi - fallbackMetrics.savings
+        setMetrics(fallbackMetrics)
+        loadFinancialMetrics()
       }
-    } else { // Max Saver
-      fallbackMetrics = {
-        salary: 100000,
-        emi: 12000,
-        savings: 40000,
-        netSpend: 48000,
-        totalSpent: 52000
-      }
+    } catch (error) {
+      console.error('Error loading salary and metrics:', error)
+      // Fallback to default
+      const fallbackMetrics = getFallbackMetrics()
+      setMetrics(fallbackMetrics)
+      setCurrentSalary(fallbackMetrics.salary)
     }
-    
-    console.log('Fallback metrics:', fallbackMetrics)
-    return fallbackMetrics
-  }
+  }, [user, transactions, getFallbackMetrics, calculateMetricsFromTransactions, loadFinancialMetrics])
+
+  useEffect(() => {
+    if (user) {
+      loadSalaryAndMetrics()
+    } else {
+      // Initialize with fallback metrics if no user
+      const fallbackMetrics = getFallbackMetrics()
+      setMetrics(fallbackMetrics)
+      setCurrentSalary(fallbackMetrics.salary) // Update current salary
+    }
+  }, [user, transactions, loadSalaryAndMetrics, getFallbackMetrics])
 
   const handleEdit = (field: string, currentValue: number) => {
     setEditing(field)

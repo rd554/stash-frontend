@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Send, Bot } from 'lucide-react'
 import { User, ChatMessage } from '@/types'
 import { apiClient } from '@/lib/api'
-import toast from 'react-hot-toast'
+// Remove unused toast import
+// import toast from 'react-hot-toast'
 
 interface ChatInterfaceProps {
   user: User
@@ -21,11 +22,32 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  const loadChatHistory = useCallback(async () => {
+    try {
+      console.log('Loading chat history for user:', user.username)
+      const response = await apiClient.getChatHistory(user.username, 50)
+      
+      if (response.success && response.data && Array.isArray(response.data)) {
+        console.log('Loaded chat history:', response.data.length, 'messages')
+        setMessages(response.data.map((msg: { id: string; userId: string; message: string; isUser: boolean; timestamp: string }) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        })))
+      } else {
+        console.log('No chat history found or API failed')
+        setMessages([])
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error)
+      setMessages([])
+    }
+  }, [user.username])
+
   // Load chat history on mount
   useEffect(() => {
     loadChatHistory()
     checkForContext()
-  }, [])
+  }, [loadChatHistory])
 
   // Check for context updates when trigger changes
   useEffect(() => {
@@ -121,42 +143,6 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
       }
     } catch (error) {
       console.error('Error loading context:', error)
-    }
-  }
-
-  const loadChatHistory = async () => {
-    try {
-      const response = await apiClient.getChatHistory(user.username)
-      if (response.success && response.data && typeof response.data === 'object' && 'messages' in response.data) {
-        const chatMessages = (response.data as { messages: Array<{ id: string; userId: string; message: string; isUser: boolean; timestamp: string }> }).messages
-        if (chatMessages && chatMessages.length > 0) {
-          // Ensure timestamps are Date objects
-          const formattedMessages = chatMessages.map((msg: { id: string; userId: string; message: string; isUser: boolean; timestamp: string }) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }))
-          setMessages(formattedMessages)
-        } else {
-          // Add welcome message if no history
-          setMessages([{
-            id: '1',
-            userId: user.username,
-            message: `Hi ${user.name}! I'm your Stash AI financial coach. I can help you with budgeting, savings goals, spending analysis, and financial advice. What would you like to know?`,
-            isUser: false,
-            timestamp: new Date()
-          }])
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load chat history:', error)
-      // Add default welcome message
-      setMessages([{
-        id: '1',
-        userId: user.username,
-        message: `Hi ${user.name}! I'm your Stash AI financial coach. I can help you with budgeting, savings goals, spending analysis, and financial advice. What would you like to know?`,
-        isUser: false,
-        timestamp: new Date()
-      }])
     }
   }
 

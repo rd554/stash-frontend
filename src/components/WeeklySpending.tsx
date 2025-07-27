@@ -1,7 +1,7 @@
 'use client'
 
 import { User } from '@/types'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { apiClient } from '@/lib/api'
 
 interface WeeklySpendingProps {
@@ -19,13 +19,24 @@ export default function WeeklySpending({ user }: WeeklySpendingProps) {
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (user) {
-      loadWeeklyData()
-    }
-  }, [user])
+  const getFallbackWeeklyData = useCallback((): WeeklyData[] => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const today = new Date()
+    
+    return days.map((day, index) => {
+      const date = new Date(today)
+      date.setDate(today.getDate() - (6 - index))
+      
+      return {
+        day,
+        amount: 0,
+        date: date.toDateString(),
+        percentage: 0
+      }
+    })
+  }, [])
 
-  const loadWeeklyData = async () => {
+  const loadWeeklyData = useCallback(async () => {
     try {
       setLoading(true)
       console.log('Loading weekly data for user:', user.username)
@@ -48,24 +59,13 @@ export default function WeeklySpending({ user }: WeeklySpendingProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user.username, getFallbackWeeklyData])
 
-  const getFallbackWeeklyData = (): WeeklyData[] => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    const today = new Date()
-    
-    return days.map((day, index) => {
-      const date = new Date(today)
-      date.setDate(today.getDate() - (6 - index))
-      
-      return {
-        day,
-        amount: 0,
-        date: date.toDateString(),
-        percentage: 0
-      }
-    })
-  }
+  useEffect(() => {
+    if (user) {
+      loadWeeklyData()
+    }
+  }, [user, loadWeeklyData])
 
   if (loading) {
     return (
@@ -109,7 +109,7 @@ export default function WeeklySpending({ user }: WeeklySpendingProps) {
       
       {/* Bar Chart Area */}
       <div className="flex items-end justify-between h-[80px] mb-4">
-        {weeklyData && weeklyData.map((data, index) => (
+        {weeklyData && weeklyData.map((data) => (
           <div key={data.day} className="flex flex-col items-center w-[30px]">
             <div className="relative flex flex-col justify-end h-[60px] w-[20px]">
               <div 

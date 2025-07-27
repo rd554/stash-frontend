@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+// Remove unused X import
+// import { X } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 import toast from 'react-hot-toast'
 
@@ -11,12 +13,7 @@ interface NewTransactionModalProps {
   userId: string
 }
 
-export default function NewTransactionModal({ 
-  isOpen, 
-  onClose, 
-  onTransactionAdded, 
-  userId 
-}: NewTransactionModalProps) {
+export default function NewTransactionModal({ isOpen, onClose, onTransactionAdded, userId }: NewTransactionModalProps) {
   console.log('NewTransactionModal rendered with isOpen:', isOpen)
   
   // Helper function to get current date/time in the correct format
@@ -47,7 +44,7 @@ export default function NewTransactionModal({
   })
 
   // Reset form data with current date/time when modal opens
-  const resetFormData = () => {
+  const resetFormData = useCallback(() => {
     setFormData({
       amount: '',
       transactionName: '',
@@ -55,7 +52,7 @@ export default function NewTransactionModal({
       category: '',
       paymentMethod: ''
     })
-  }
+  }, [])
   const [isLoading, setIsLoading] = useState(false)
 
   // Reset form data with current date/time when modal opens
@@ -63,7 +60,7 @@ export default function NewTransactionModal({
     if (isOpen) {
       resetFormData()
     }
-  }, [isOpen])
+  }, [isOpen, resetFormData])
 
   const categories = [
     'Transport',

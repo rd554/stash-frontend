@@ -1,11 +1,11 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import { User, Transaction } from '@/types'
-import { useState, useEffect } from 'react'
 import { apiClient } from '@/lib/api'
+import { BudgetCapStorage } from '@/lib/budgetStorage'
 import { Edit2, Check, X } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { BudgetCapStorage } from '@/lib/budgetStorage'
 
 interface BudgetOverviewProps {
   user: User
@@ -22,13 +22,9 @@ interface BudgetCategory {
 
 // Color coding based on spending status (percentage of budget used)
 const getProgressBarColor = (percentage: number): string => {
-  if (percentage <= 80) {
-    return '#10b981' // Green - safe zone
-  } else if (percentage <= 100) {
-    return '#f59e0b' // Yellow - warning zone
-  } else {
-    return '#ef4444' // Red - over budget
-  }
+  if (percentage >= 90) return 'bg-red-500'
+  if (percentage >= 75) return 'bg-yellow-500'
+  return 'bg-green-500'
 }
 
 export default function BudgetOverview({ user, transactions = [] }: BudgetOverviewProps) {
@@ -37,15 +33,156 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
   const [editing, setEditing] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
 
-  useEffect(() => {
-    if (user) {
-      // Clear expired budget caps on component mount
-      BudgetCapStorage.clearExpiredBudgetCaps()
-      loadBudgetData()
+  const getFallbackBudgetData = useCallback((): BudgetCategory[] => {
+    if (!user) return []
+    
+    const personalityData = {
+      'Heavy Spender': [
+        { category: 'Food & Dining', amount: 25000, budgetCap: 30000, percentage: 83.33, isOverBudget: false },
+        { category: 'Transport', amount: 12000, budgetCap: 15000, percentage: 80, isOverBudget: false },
+        { category: 'Shopping', amount: 35000, budgetCap: 30000, percentage: 116.67, isOverBudget: true },
+        { category: 'Entertainment', amount: 8000, budgetCap: 5000, percentage: 160, isOverBudget: true }
+      ],
+      'Medium Spender': [
+        { category: 'Food & Dining', amount: 18000, budgetCap: 20000, percentage: 90, isOverBudget: false },
+        { category: 'Transport', amount: 8000, budgetCap: 10000, percentage: 80, isOverBudget: false },
+        { category: 'Shopping', amount: 15000, budgetCap: 20000, percentage: 75, isOverBudget: false },
+        { category: 'Entertainment', amount: 4000, budgetCap: 5000, percentage: 80, isOverBudget: false }
+      ],
+      'Max Saver': [
+        { category: 'Food & Dining', amount: 12000, budgetCap: 15000, percentage: 80, isOverBudget: false },
+        { category: 'Transport', amount: 5000, budgetCap: 8000, percentage: 62.5, isOverBudget: false },
+        { category: 'Shopping', amount: 8000, budgetCap: 12000, percentage: 66.67, isOverBudget: false },
+        { category: 'Entertainment', amount: 2000, budgetCap: 3000, percentage: 66.67, isOverBudget: false }
+      ]
     }
-  }, [user, transactions]) // Also reload when transactions change
+    
+    return personalityData[user.spendingPersonality] || personalityData['Medium Spender']
+  }, [user])
 
-  const loadBudgetData = async () => {
+  const calculateBudgetDataFromTransactions = useCallback((transactionList: Transaction[] = transactions): BudgetCategory[] => {
+    // Get default budget caps based on persona
+    const getDefaultBudgetCaps = () => {
+      const persona = user?.spendingPersonality || 'Medium Spender'
+      switch (persona) {
+        case 'Heavy Spender':
+          return {
+            'Food & Dining': 30000,
+            'Transport': 15000,
+            'Shopping': 30000,
+            'Entertainment': 5000,
+            'Healthcare': 25000,
+            'Utilities': 20000,
+            'Education': 100000,
+            'Subscriptions': 5000,
+            'Rent': 200000,
+            'Other': 50000
+          }
+        case 'Medium Spender':
+          return {
+            'Food & Dining': 20000,
+            'Transport': 10000,
+            'Shopping': 20000,
+            'Entertainment': 5000,
+            'Healthcare': 20000,
+            'Utilities': 15000,
+            'Education': 80000,
+            'Subscriptions': 3000,
+            'Rent': 150000,
+            'Other': 30000
+          }
+        case 'Max Saver':
+          return {
+            'Food & Dining': 15000,
+            'Transport': 8000,
+            'Shopping': 12000,
+            'Entertainment': 3000,
+            'Healthcare': 15000,
+            'Utilities': 12000,
+            'Education': 60000,
+            'Subscriptions': 2000,
+            'Rent': 120000,
+            'Other': 20000
+          }
+        default:
+          return {
+            'Food & Dining': 20000,
+            'Transport': 10000,
+            'Shopping': 20000,
+            'Entertainment': 5000,
+            'Healthcare': 20000,
+            'Utilities': 15000,
+            'Education': 80000,
+            'Subscriptions': 3000,
+            'Rent': 150000,
+            'Other': 30000
+          }
+      }
+    }
+
+    const defaultCaps = getDefaultBudgetCaps()
+    const categoryTotals: { [key: string]: number } = {}
+    
+    // Calculate totals by category
+    transactionList.forEach(tx => {
+      const category = tx.category
+      const amount = typeof tx.amount === 'string' ? parseFloat(tx.amount) : tx.amount
+      categoryTotals[category] = (categoryTotals[category] || 0) + amount
+    })
+    
+    // Create budget categories
+    const budgetCategories: BudgetCategory[] = Object.keys(defaultCaps).map(category => {
+      const amount = categoryTotals[category] || 0
+      const budgetCap = defaultCaps[category as keyof typeof defaultCaps]
+      const percentage = budgetCap > 0 ? (amount / budgetCap) * 100 : 0
+      const isOverBudget = amount > budgetCap
+      
+      return {
+        category,
+        amount,
+        budgetCap,
+        percentage: Math.round(percentage * 100) / 100,
+        isOverBudget
+      }
+    })
+    
+    return budgetCategories
+  }, [user, transactions])
+
+  const getFullMonthBudgetData = useCallback(async (): Promise<BudgetCategory[] | null> => {
+    console.log('🚀 getFullMonthBudgetData() called for user:', user.username)
+    try {
+      // Get all transactions (persona + manual) from new API
+      const response = await apiClient.getBudgetTransactions(user.username)
+      console.log('Budget transactions API response:', response)
+      
+      if (!response.success || !response.data) {
+        console.log('Failed to get budget transactions, using fallback')
+        return null
+      }
+      
+      // The API client wraps the response, so we need to access response.data.data
+      const apiData = ((response.data as Record<string, unknown>).data || response.data) as {
+        transactions: Transaction[];
+        manualCount: number;
+        personaCount: number;
+      }
+      const allTransactions = apiData.transactions || []
+      console.log('Total transactions for budget calculation:', allTransactions.length)
+      console.log('Manual transactions count:', apiData.manualCount)
+      console.log('Persona transactions count:', apiData.personaCount)
+      console.log('Sample transactions:', allTransactions.slice(0, 2))
+      
+      // Calculate budget data from all transactions
+      return calculateBudgetDataFromTransactions(allTransactions)
+      
+    } catch (error) {
+      console.error('Error getting full month budget data:', error)
+      return null
+    }
+  }, [user.username, calculateBudgetDataFromTransactions])
+
+  const loadBudgetData = useCallback(async () => {
     try {
       setLoading(true)
       console.log('Loading budget data for user:', user.username)
@@ -99,152 +236,15 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
     } finally {
       setLoading(false)
     }
-  }
+  }, [user.username, getFallbackBudgetData, getFullMonthBudgetData])
 
-  const getFullMonthBudgetData = async (): Promise<BudgetCategory[] | null> => {
-    console.log('🚀 getFullMonthBudgetData() called for user:', user.username)
-    try {
-      // Get all transactions (persona + manual) from new API
-      const response = await apiClient.getBudgetTransactions(user.username)
-      console.log('Budget transactions API response:', response)
-      
-      if (!response.success || !response.data) {
-        console.log('Failed to get budget transactions, using fallback')
-        return null
-      }
-      
-      // The API client wraps the response, so we need to access response.data.data
-      const apiData = ((response.data as Record<string, unknown>).data || response.data) as {
-        transactions: Transaction[];
-        manualCount: number;
-        personaCount: number;
-      }
-      const allTransactions = apiData.transactions || []
-      console.log('Total transactions for budget calculation:', allTransactions.length)
-      console.log('Manual transactions count:', apiData.manualCount)
-      console.log('Persona transactions count:', apiData.personaCount)
-      console.log('Sample transactions:', allTransactions.slice(0, 2))
-      
-      // Calculate budget data from all transactions
-      return calculateBudgetDataFromTransactions(allTransactions)
-      
-    } catch (error) {
-      console.error('Error getting full month budget data:', error)
-      return null
+  useEffect(() => {
+    if (user) {
+      // Clear expired budget caps on component mount
+      BudgetCapStorage.clearExpiredBudgetCaps()
+      loadBudgetData()
     }
-  }
-
-  const calculateBudgetDataFromTransactions = (transactionList: Transaction[] = transactions): BudgetCategory[] => {
-    // Get default budget caps based on persona
-    const getDefaultBudgetCaps = () => {
-      const persona = user.spendingPersonality
-      
-      if (persona === 'Heavy Spender') {
-        return {
-          'Entertainment': 12000,
-          'Dining': 10000,
-          'Groceries': 12000,
-          'Shopping': 15000,
-          'Transport': 4000
-        }
-      } else if (persona === 'Medium Spender') {
-        return {
-          'Dining': 6000,
-          'Groceries': 7000,
-          'savings': 25000,
-          'Shopping': 20000,
-          'Transport': 6000
-        }
-      } else { // Max Saver
-        return {
-          'Transport': 5000,
-          'Groceries': 6000,
-          'travel': 4000,
-          'utilities': 7000,
-          'savings': 6000
-        }
-      }
-    }
-
-    const defaultCaps = getDefaultBudgetCaps()
-    
-    // Calculate totals from actual transactions
-    const categoryTotals: { [key: string]: number } = {}
-    
-    transactionList.forEach(transaction => {
-      const category = transaction.category
-      
-      if (category) {
-        // Normalize category names to match budget caps
-        let normalizedCategory = category
-        if (category === 'Food & Dining' || category === 'food & dining') normalizedCategory = 'Dining'
-        if (category === 'food') normalizedCategory = 'Dining'
-        if (category === 'entertainment') normalizedCategory = 'Entertainment'
-        if (category === 'transport') normalizedCategory = 'Transport'
-        if (category === 'shopping') normalizedCategory = 'Shopping'
-        if (category === 'groceries') normalizedCategory = 'Groceries'
-        if (category === 'savings') normalizedCategory = 'savings'
-        if (category === 'travel') normalizedCategory = 'travel'
-        if (category === 'utilities') normalizedCategory = 'utilities'
-        
-        const amount = typeof transaction.amount === 'string' ? parseFloat(transaction.amount) : transaction.amount
-        const previousTotal = categoryTotals[normalizedCategory] || 0
-        categoryTotals[normalizedCategory] = previousTotal + amount
-      }
-    })
-
-    // Create budget data from calculated totals
-    const budgetData: BudgetCategory[] = []
-    
-    Object.keys(defaultCaps).forEach(category => {
-      const amount = categoryTotals[category] || 0
-      const budgetCap = defaultCaps[category as keyof typeof defaultCaps]
-      if (budgetCap !== undefined) {
-        const percentage = budgetCap > 0 ? (amount / budgetCap) * 100 : 0
-        const isOverBudget = amount > budgetCap
-        
-        budgetData.push({
-          category,
-          amount,
-          budgetCap,
-          percentage: Math.round(percentage * 100) / 100,
-          isOverBudget
-        })
-      }
-    })
-
-    return budgetData
-  }
-
-  const getFallbackBudgetData = (): BudgetCategory[] => {
-    const persona = user.spendingPersonality
-    
-    if (persona === 'Heavy Spender') {
-      return [
-        { category: 'Entertainment', amount: 37988, budgetCap: 12000, percentage: 316.57, isOverBudget: true },
-        { category: 'Dining', amount: 11286, budgetCap: 10000, percentage: 112.86, isOverBudget: true },
-        { category: 'Groceries', amount: 18858, budgetCap: 12000, percentage: 157.15, isOverBudget: true },
-        { category: 'Shopping', amount: 28483, budgetCap: 15000, percentage: 189.89, isOverBudget: true },
-        { category: 'Transport', amount: 2602, budgetCap: 4000, percentage: 65.05, isOverBudget: false }
-      ]
-    } else if (persona === 'Medium Spender') {
-      return [
-        { category: 'Dining', amount: 9873, budgetCap: 6000, percentage: 164.6, isOverBudget: true },
-        { category: 'Groceries', amount: 10251, budgetCap: 7000, percentage: 146.4, isOverBudget: true },
-        { category: 'savings', amount: 20502, budgetCap: 25000, percentage: 82, isOverBudget: false },
-        { category: 'Shopping', amount: 22321, budgetCap: 20000, percentage: 111.6, isOverBudget: true },
-        { category: 'Transport', amount: 12899, budgetCap: 6000, percentage: 215, isOverBudget: true }
-      ]
-    } else { // Max Saver
-      return [
-        { category: 'Transport', amount: 14966, budgetCap: 5000, percentage: 299.3, isOverBudget: true },
-        { category: 'Groceries', amount: 9183, budgetCap: 6000, percentage: 153.1, isOverBudget: true },
-        { category: 'travel', amount: 7145, budgetCap: 4000, percentage: 178.6, isOverBudget: true },
-        { category: 'utilities', amount: 6060, budgetCap: 7000, percentage: 86.6, isOverBudget: false },
-        { category: 'savings', amount: 5092, budgetCap: 6000, percentage: 84.9, isOverBudget: false }
-      ]
-    }
-  }
+  }, [user, loadBudgetData]) // Also reload when transactions change
 
   const handleEdit = (category: string, currentCap: number) => {
     setEditing(category)

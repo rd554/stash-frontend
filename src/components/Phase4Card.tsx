@@ -1,7 +1,7 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import { User } from '@/types'
-import { useState, useEffect } from 'react'
 import { apiClient } from '@/lib/api'
 
 interface Phase4CardProps {
@@ -31,19 +31,13 @@ interface FinancialGoal {
 }
 
 export default function Phase4Card({ user, refreshTrigger }: Phase4CardProps) {
-  const [loading, setLoading] = useState(true)
   const [optimizations, setOptimizations] = useState<BudgetOptimization[]>([])
   const [goals, setGoals] = useState<FinancialGoal[]>([])
   const [totalPotentialSavings, setTotalPotentialSavings] = useState(0)
   const [highPriorityGoals, setHighPriorityGoals] = useState(0)
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (user) {
-      loadPhase4Summary()
-    }
-  }, [user, refreshTrigger])
-
-  const loadPhase4Summary = async () => {
+  const loadPhase4Summary = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -68,7 +62,13 @@ export default function Phase4Card({ user, refreshTrigger }: Phase4CardProps) {
       console.error('Error loading Phase 4 summary:', error)
       setLoading(false)
     }
-  }
+  }, [user.username])
+
+  useEffect(() => {
+    if (user) {
+      loadPhase4Summary()
+    }
+  }, [user, refreshTrigger, loadPhase4Summary])
 
   const getTopOptimization = () => {
     return optimizations.length > 0 ? optimizations[0] : null
@@ -78,16 +78,6 @@ export default function Phase4Card({ user, refreshTrigger }: Phase4CardProps) {
     return goals.filter(g => g.priority === 'high').length > 0 
       ? goals.filter(g => g.priority === 'high')[0] 
       : goals.length > 0 ? goals[0] : null
-  }
-
-  const getGoalIcon = (type: string) => {
-    switch (type) {
-      case 'savings': return '💰'
-      case 'investment': return '📈'
-      case 'debt_payoff': return '💳'
-      case 'emergency_fund': return '🛡️'
-      default: return '🎯'
-    }
   }
 
   const getPriorityColor = (priority: string) => {

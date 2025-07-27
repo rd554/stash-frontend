@@ -1,7 +1,7 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import { User } from '@/types'
-import { useState, useEffect } from 'react'
 import { apiClient } from '@/lib/api'
 
 interface AdvancedAnalyticsProps {
@@ -49,21 +49,15 @@ interface CategoryInsight {
 }
 
 export default function AdvancedAnalytics({ user, refreshTrigger }: AdvancedAnalyticsProps) {
-  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'trends' | 'health' | 'mood' | 'predictions' | 'categories'>('trends')
+  const [loading, setLoading] = useState(true)
   const [trends, setTrends] = useState<SpendingTrend[]>([])
   const [healthScore, setHealthScore] = useState<FinancialHealthScore | null>(null)
   const [correlations, setCorrelations] = useState<MoodSpendCorrelation[]>([])
   const [predictions, setPredictions] = useState<PredictivePattern[]>([])
   const [categoryInsights, setCategoryInsights] = useState<CategoryInsight[]>([])
 
-  useEffect(() => {
-    if (user) {
-      loadAnalytics()
-    }
-  }, [user, refreshTrigger])
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true)
       console.log('📊 ADVANCED ANALYTICS: Loading analytics for user:', user.username)
@@ -107,7 +101,13 @@ export default function AdvancedAnalytics({ user, refreshTrigger }: AdvancedAnal
     } finally {
       setLoading(false)
     }
-  }
+  }, [user.username])
+
+  useEffect(() => {
+    if (user) {
+      loadAnalytics()
+    }
+  }, [user, refreshTrigger, loadAnalytics])
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
