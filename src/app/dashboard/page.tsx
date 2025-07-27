@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, Transaction } from '@/types'
 import FloatingChatbot from '@/components/FloatingChatbot'
@@ -20,102 +20,12 @@ export default function DashboardPage() {
   const [showChat, setShowChat] = useState(false)
   const [showNewTransactionModal, setShowNewTransactionModal] = useState(false)
   const [showAvatarDropdown, setShowAvatarDropdown] = useState(false)
-  const [inputMessage, setInputMessage] = useState('')
+  // Remove unused inputMessage state variables
+  // const [inputMessage, setInputMessage] = useState('')
   const [contextUpdateTrigger, setContextUpdateTrigger] = useState(0)
   const router = useRouter()
 
-  useEffect(() => {
-    // Check if user is logged in and has completed onboarding
-    const userData = localStorage.getItem('stash-ai-user-data')
-    const username = localStorage.getItem('stash-ai-user')
-    
-    if (!userData || !username) {
-      router.push('/')
-      return
-    }
-
-    const parsedUserData = JSON.parse(userData)
-    const userObj: User = {
-      id: username,
-      username: username as 'test1' | 'test2' | 'test3',
-      name: parsedUserData.name,
-      age: parseInt(parsedUserData.age),
-      theme: parsedUserData.theme,
-      spendingPersonality: parsedUserData.spendingPersonality,
-      createdAt: new Date()
-    }
-    setUser(userObj)
-
-
-
-    // Check for monthly reset and load data
-    const initializeDashboard = async () => {
-      // Check if monthly reset is needed
-      const resetPerformed = await MonthlyReset.checkAndResetIfNeeded(username)
-      if (resetPerformed) {
-        console.log('Monthly reset completed, refreshing data...')
-      }
-      
-      // Load transactions from API
-      loadTransactions(username)
-    }
-    
-    initializeDashboard()
-  }, [router])
-
-  // Handle clicking outside avatar dropdown
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element
-      if (!target.closest('.avatar-dropdown-container')) {
-        setShowAvatarDropdown(false)
-      }
-    }
-
-    if (showAvatarDropdown) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [showAvatarDropdown])
-
-  const loadTransactions = async (userId: string) => {
-    try {
-      console.log('Loading transactions for user:', userId)
-      
-      // Use the new budget transactions API to get all transactions (persona + manual)
-      const response = await apiClient.getBudgetTransactions(userId)
-      
-      if (response.success && response.data) {
-        // The API client wraps the response, so we need to access response.data.data
-        const apiData = (response.data && typeof response.data === 'object' && 'data' in response.data)
-          ? (response.data as Record<string, unknown>).data as Record<string, unknown>
-          : response.data as Record<string, unknown>
-        const allTransactions = (apiData.transactions as Transaction[]) || []
-        
-        console.log('Loaded transactions:', allTransactions.length)
-        console.log('Manual transactions:', apiData.manualCount as number)
-        console.log('Persona transactions:', apiData.personaCount as number)
-        
-        setTransactions(allTransactions)
-        
-        // Generate agentic insights based on transactions
-        await generateAgenticInsights(userId, allTransactions)
-      } else {
-        console.error('Failed to load transactions from API')
-        setTransactions([])
-      }
-      
-    } catch (error) {
-      console.error('Failed to load transactions:', error)
-      console.log('Setting empty transactions array due to error')
-      setTransactions([])
-    }
-  }
-
-  const generateAgenticInsights = async (userId: string, transactions: Transaction[]) => {
+  const generateAgenticInsights = useCallback(async (userId: string, transactions: Transaction[]) => {
     try {
       console.log('Generating agentic insights for user:', userId)
       
@@ -143,87 +53,95 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error generating agentic insights:', error)
     }
-  }
+  }, [])
 
-  const loadPersonaTransactions = async (spendingPersonality: string, currentDate: string) => {
+  const loadTransactions = useCallback(async (userId: string) => {
     try {
-      const userTypeMapping: { [key: string]: string } = {
-        'Heavy Spender': 'heavy',
-        'Medium Spender': 'medium',
-        'Max Saver': 'max'
-      }
+      console.log('Loading transactions for user:', userId)
       
-      const userType = userTypeMapping[spendingPersonality] || 'medium'
+      // Use the new budget transactions API to get all transactions (persona + manual)
+      const response = await apiClient.getBudgetTransactions(userId)
       
-      console.log(`Loading latest ${userType} transactions`)
-      
-      // Use the new transaction service to get latest 10 transactions
-      const response = await apiClient.getLatestTransactions(userType, 10)
-      console.log('API Response:', response) // Debug log
-      console.log('Response success:', response.success) // Debug log
-      console.log('Response data:', response.data) // Debug log
-      
-      if (response.success && response.data && response.data.transactions) {
-        console.log(`Loaded ${response.data.transactions.length} latest transactions`)
-        setTransactions(response.data.transactions)
+      if (response.success && response.data) {
+        // Properly type the API response
+        interface BudgetTransactionsResponse {
+          transactions: Transaction[]
+          manualCount: number
+          personaCount: number
+        }
+        
+        const apiData = response.data as BudgetTransactionsResponse
+        const allTransactions = apiData.transactions || []
+        
+        console.log('Loaded transactions:', allTransactions.length)
+        console.log('Manual transactions:', apiData.manualCount)
+        console.log('Persona transactions:', apiData.personaCount)
+        
+        setTransactions(allTransactions)
+        
+        // Generate agentic insights based on transactions
+        await generateAgenticInsights(userId, allTransactions)
       } else {
-        console.log('No transactions data received, setting empty array')
-        console.log('Response success:', response.success)
-        console.log('Response data exists:', !!response.data)
+        console.error('Failed to load transactions from API')
         setTransactions([])
       }
+      
     } catch (error) {
-      console.error('Failed to load persona transactions:', error)
+      console.error('Failed to load transactions:', error)
       console.log('Setting empty transactions array due to error')
       setTransactions([])
     }
-  }
+  }, [generateAgenticInsights])
 
   // Manual transactions are now handled by the backend API
   // No need for localStorage logic anymore
 
-  const getPersonalityData = () => {
-    if (!user) return { salary: 100000, emi: 15000, savings: 20000, emergencyFund: 75000 }
-    
-    const personalityData = {
-      'Heavy Spender': { salary: 100000, emi: 35000, savings: 2000, emergencyFund: 75000 },
-      'Medium Spender': { salary: 100000, emi: 15000, savings: 20000, emergencyFund: 75000 },
-      'Max Saver': { salary: 100000, emi: 5000, savings: 40000, emergencyFund: 75000 }
-    }
-    
-    return personalityData[user.spendingPersonality] || personalityData['Medium Spender']
-  }
+  // Remove unused getPersonalityData function and personalityData variable
+  // const getPersonalityData = () => {
+  //   if (!user) return { salary: 100000, emi: 15000, savings: 20000, emergencyFund: 75000 }
+  //   
+  //   const personalityData = {
+  //     'Heavy Spender': { salary: 100000, emi: 35000, savings: 2000, emergencyFund: 75000 },
+  //     'Medium Spender': { salary: 100000, emi: 15000, savings: 20000, emergencyFund: 75000 },
+  //     'Max Saver': { salary: 100000, emi: 5000, savings: 40000, emergencyFund: 75000 }
+  //   }
+  //   
+  //   return personalityData[user.spendingPersonality] || personalityData['Medium Spender']
+  // }
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !user) return
-
-    const newMessage = {
-      id: Date.now().toString(),
-      message: inputMessage,
-      isUser: true,
-      timestamp: new Date()
-    }
-    setInputMessage('')
-
-    try {
-      const response = await apiClient.sendMessage(user.username, newMessage.message)
-      if (response.success && response.data && typeof response.data === 'object' && 'aiMessage' in response.data) {
-        const aiMessage = (response.data as { aiMessage: { id: string; message: string; timestamp: string } }).aiMessage
-        // Handle AI response if needed
-      } else {
-        // Fallback AI response
-      }
-    } catch (error) {
-      console.error('Failed to send message:', error)
-    }
-  }
-
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault()
-      handleSendMessage()
-    }
-  }
+  // Remove unused handleSendMessage function
+  // const handleSendMessage = async () => {
+  //   if (!inputMessage.trim() || !user) return
+  //
+  //   const newMessage = {
+  //     id: Date.now().toString(),
+  //     message: inputMessage,
+  //     isUser: true,
+  //     timestamp: new Date()
+  //   }
+  //   setInputMessage('')
+  //
+  //   try {
+  //     const response = await apiClient.sendMessage(user.username, newMessage.message)
+  //     
+  //     if (response.success && response.data) {
+  //       // Properly type the AI message response
+  //       interface MessageResponse {
+  //         aiMessage: {
+  //           id: string
+  //           message: string
+  //           timestamp: string
+  //         }
+  //       }
+  //       
+  //       const messageData = response.data as MessageResponse
+  //       // Handle AI response if needed
+  //       console.log('AI response:', messageData.aiMessage)
+  //     }
+  //   } catch (error) {
+  //     console.error('Failed to send message:', error)
+  //   }
+  // }
 
   const handleGetTips = () => {
     console.log('Get Tips clicked - opening chat and triggering context update')
@@ -277,6 +195,63 @@ export default function DashboardPage() {
     window.location.href = '/'
   }
 
+  useEffect(() => {
+    // Check if user is logged in and has completed onboarding
+    const userData = localStorage.getItem('stash-ai-user-data')
+    const username = localStorage.getItem('stash-ai-user')
+    
+    if (!userData || !username) {
+      router.push('/')
+      return
+    }
+
+    const parsedUserData = JSON.parse(userData)
+    const userObj: User = {
+      id: username,
+      username: username as 'test1' | 'test2' | 'test3',
+      name: parsedUserData.name,
+      age: parseInt(parsedUserData.age),
+      theme: parsedUserData.theme,
+      spendingPersonality: parsedUserData.spendingPersonality,
+      createdAt: new Date()
+    }
+    setUser(userObj)
+
+
+
+    // Check for monthly reset and load data
+    const initializeDashboard = async () => {
+      // Check if monthly reset is needed
+      const resetPerformed = await MonthlyReset.checkAndResetIfNeeded(username)
+      if (resetPerformed) {
+        console.log('Monthly reset completed, refreshing data...')
+      }
+      
+      // Load transactions from API
+      loadTransactions(username)
+    }
+    
+    initializeDashboard()
+  }, [router, loadTransactions])
+
+  // Handle clicking outside avatar dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest('.avatar-dropdown-container')) {
+        setShowAvatarDropdown(false)
+      }
+    }
+
+    if (showAvatarDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showAvatarDropdown])
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -287,8 +262,6 @@ export default function DashboardPage() {
       </div>
     )
   }
-
-  const personalityData = getPersonalityData()
 
   return (
     <div className="min-h-screen bg-gray-50 relative">
