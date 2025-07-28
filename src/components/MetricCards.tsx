@@ -132,11 +132,13 @@ export default function MetricCards({ user, transactions = [] }: MetricCardsProp
   const loadSalaryAndMetrics = useCallback(async () => {
     if (!user) return
     
+    console.log('MetricCards: loadSalaryAndMetrics started for user:', user.username, 'transactions:', transactions.length)
+    setLoading(true)
+    
     try {
-      // Load salary from database
+      // First, get the user's current salary from the database
+      let salary = 100000 // Default fallback
       const salaryResponse = await apiClient.getSalary(user.username)
-      
-      let salary = 100000 // Default salary
       
       if (salaryResponse.success && salaryResponse.data) {
         // The API client wraps the response, so we need to access response.data.data
@@ -146,17 +148,20 @@ export default function MetricCards({ user, transactions = [] }: MetricCardsProp
         }
       }
       
+      console.log('MetricCards: Loaded salary:', salary)
       setCurrentSalary(salary)
       
       if (transactions.length > 0) {
         // Calculate metrics from actual transactions with database salary
         const calculatedMetrics = calculateMetricsFromTransactions(transactions, salary)
+        console.log('MetricCards: Calculated metrics from transactions:', calculatedMetrics)
         setMetrics(calculatedMetrics)
       } else {
         // Fallback to API or static data
         const fallbackMetrics = getFallbackMetrics()
         fallbackMetrics.salary = salary // Use database salary
         fallbackMetrics.netSpend = salary - fallbackMetrics.emi - fallbackMetrics.savings
+        console.log('MetricCards: Using fallback metrics:', fallbackMetrics)
         setMetrics(fallbackMetrics)
         loadFinancialMetrics()
       }
@@ -166,17 +171,23 @@ export default function MetricCards({ user, transactions = [] }: MetricCardsProp
       const fallbackMetrics = getFallbackMetrics()
       setMetrics(fallbackMetrics)
       setCurrentSalary(fallbackMetrics.salary)
+    } finally {
+      console.log('MetricCards: Setting loading to false')
+      setLoading(false)
     }
   }, [user, transactions, getFallbackMetrics, calculateMetricsFromTransactions, loadFinancialMetrics])
 
   useEffect(() => {
     if (user) {
+      console.log('MetricCards: Loading salary and metrics for user:', user.username)
       loadSalaryAndMetrics()
     } else {
       // Initialize with fallback metrics if no user
+      console.log('MetricCards: No user, using fallback metrics')
       const fallbackMetrics = getFallbackMetrics()
       setMetrics(fallbackMetrics)
       setCurrentSalary(fallbackMetrics.salary) // Update current salary
+      setLoading(false) // Ensure loading is set to false
     }
   }, [user, transactions, loadSalaryAndMetrics, getFallbackMetrics])
 
