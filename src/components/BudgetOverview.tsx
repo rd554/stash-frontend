@@ -38,22 +38,25 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
     
     const personalityData = {
       'Heavy Spender': [
+        { category: 'Entertainment', amount: 8000, budgetCap: 5000, percentage: 160, isOverBudget: true },
         { category: 'Food & Dining', amount: 25000, budgetCap: 30000, percentage: 83.33, isOverBudget: false },
-        { category: 'Transport', amount: 12000, budgetCap: 15000, percentage: 80, isOverBudget: false },
+        { category: 'Groceries', amount: 20000, budgetCap: 25000, percentage: 80, isOverBudget: false },
         { category: 'Shopping', amount: 35000, budgetCap: 30000, percentage: 116.67, isOverBudget: true },
-        { category: 'Entertainment', amount: 8000, budgetCap: 5000, percentage: 160, isOverBudget: true }
+        { category: 'Transport', amount: 12000, budgetCap: 15000, percentage: 80, isOverBudget: false }
       ],
       'Medium Spender': [
         { category: 'Food & Dining', amount: 18000, budgetCap: 20000, percentage: 90, isOverBudget: false },
-        { category: 'Transport', amount: 8000, budgetCap: 10000, percentage: 80, isOverBudget: false },
+        { category: 'Groceries', amount: 15000, budgetCap: 20000, percentage: 75, isOverBudget: false },
+        { category: 'Savings', amount: 18000, budgetCap: 20000, percentage: 90, isOverBudget: false },
         { category: 'Shopping', amount: 15000, budgetCap: 20000, percentage: 75, isOverBudget: false },
-        { category: 'Entertainment', amount: 4000, budgetCap: 5000, percentage: 80, isOverBudget: false }
+        { category: 'Transport', amount: 8000, budgetCap: 10000, percentage: 80, isOverBudget: false }
       ],
       'Max Saver': [
-        { category: 'Food & Dining', amount: 12000, budgetCap: 15000, percentage: 80, isOverBudget: false },
         { category: 'Transport', amount: 5000, budgetCap: 8000, percentage: 62.5, isOverBudget: false },
-        { category: 'Shopping', amount: 8000, budgetCap: 12000, percentage: 66.67, isOverBudget: false },
-        { category: 'Entertainment', amount: 2000, budgetCap: 3000, percentage: 66.67, isOverBudget: false }
+        { category: 'Groceries', amount: 12000, budgetCap: 15000, percentage: 80, isOverBudget: false },
+        { category: 'Travel', amount: 8000, budgetCap: 12000, percentage: 66.67, isOverBudget: false },
+        { category: 'Utilities', amount: 10000, budgetCap: 12000, percentage: 83.33, isOverBudget: false },
+        { category: 'Savings', amount: 12000, budgetCap: 15000, percentage: 80, isOverBudget: false }
       ]
     }
     
@@ -61,66 +64,46 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
   }, [user])
 
   const calculateBudgetDataFromTransactions = useCallback((transactionList: Transaction[] = transactions): BudgetCategory[] => {
-    // Get default budget caps based on persona
-    const getDefaultBudgetCaps = () => {
+    // Get persona-specific budget categories based on user requirements
+    const getPersonaSpecificCategories = () => {
       const persona = user?.spendingPersonality || 'Medium Spender'
       switch (persona) {
         case 'Heavy Spender':
           return {
-            'Food & Dining': 30000,
-            'Transport': 15000,
-            'Shopping': 30000,
             'Entertainment': 5000,
-            'Healthcare': 25000,
-            'Utilities': 20000,
-            'Education': 100000,
-            'Subscriptions': 5000,
-            'Rent': 200000,
-            'Other': 50000
+            'Food & Dining': 30000,
+            'Groceries': 25000,
+            'Shopping': 30000,
+            'Transport': 15000
           }
         case 'Medium Spender':
           return {
             'Food & Dining': 20000,
-            'Transport': 10000,
+            'Groceries': 20000,
+            'Savings': 20000,
             'Shopping': 20000,
-            'Entertainment': 5000,
-            'Healthcare': 20000,
-            'Utilities': 15000,
-            'Education': 80000,
-            'Subscriptions': 3000,
-            'Rent': 150000,
-            'Other': 30000
+            'Transport': 10000
           }
         case 'Max Saver':
           return {
-            'Food & Dining': 15000,
             'Transport': 8000,
-            'Shopping': 12000,
-            'Entertainment': 3000,
-            'Healthcare': 15000,
+            'Groceries': 15000,
+            'Travel': 12000,
             'Utilities': 12000,
-            'Education': 60000,
-            'Subscriptions': 2000,
-            'Rent': 120000,
-            'Other': 20000
+            'Savings': 15000
           }
         default:
           return {
             'Food & Dining': 20000,
-            'Transport': 10000,
+            'Groceries': 20000,
+            'Savings': 20000,
             'Shopping': 20000,
-            'Entertainment': 5000,
-            'Healthcare': 20000,
-            'Utilities': 15000,
-            'Education': 80000,
-            'Subscriptions': 3000,
-            'Rent': 150000,
-            'Other': 30000
+            'Transport': 10000
           }
       }
     }
 
-    const defaultCaps = getDefaultBudgetCaps()
+    const personaCategories = getPersonaSpecificCategories()
     const categoryTotals: { [key: string]: number } = {}
     
     // Calculate totals by category
@@ -130,10 +113,10 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
       categoryTotals[category] = (categoryTotals[category] || 0) + amount
     })
     
-    // Create budget categories
-    const budgetCategories: BudgetCategory[] = Object.keys(defaultCaps).map(category => {
+    // Create budget categories ONLY for persona-specific categories
+    const budgetCategories: BudgetCategory[] = Object.keys(personaCategories).map(category => {
       const amount = categoryTotals[category] || 0
-      const budgetCap = defaultCaps[category as keyof typeof defaultCaps]
+      const budgetCap = personaCategories[category as keyof typeof personaCategories] || 0
       const percentage = budgetCap > 0 ? (amount / budgetCap) * 100 : 0
       const isOverBudget = amount > budgetCap
       
