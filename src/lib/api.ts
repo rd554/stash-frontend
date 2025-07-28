@@ -30,13 +30,19 @@ class ApiClient {
         endpoint
       });
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
         },
+        signal: controller.signal,
         ...options,
       });
+      
+      clearTimeout(timeoutId);
 
       console.log('API Response status:', response.status);
       const data = await response.json();
@@ -61,6 +67,12 @@ class ApiClient {
       };
     } catch (error) {
       console.error('API request failed:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        return {
+          success: false,
+          error: 'Request timeout - please try again',
+        };
+      }
       return {
         success: false,
         error: 'Network error',

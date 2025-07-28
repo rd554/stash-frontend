@@ -20,12 +20,19 @@ export default function WeeklySpending({ user }: WeeklySpendingProps) {
   const [loading, setLoading] = useState(true)
 
   const getFallbackWeeklyData = useCallback((): WeeklyData[] => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     const today = new Date()
     
+    // Calculate days from last Monday to yesterday Sunday
+    // Get the most recent Monday (could be today if today is Monday)
+    const lastMonday = new Date(today)
+    const dayOfWeek = today.getDay() // 0 = Sunday, 1 = Monday, etc.
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // If Sunday, go back 6 days, otherwise go back to Monday
+    lastMonday.setDate(today.getDate() - daysToSubtract - 7) // Go back to previous week's Monday
+    
     return days.map((day, index) => {
-      const date = new Date(today)
-      date.setDate(today.getDate() - (6 - index))
+      const date = new Date(lastMonday)
+      date.setDate(lastMonday.getDate() + index)
       
       return {
         day,

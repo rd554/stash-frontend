@@ -187,17 +187,13 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
       setLoading(true)
       console.log('Loading budget data for user:', user.username)
       
-      let budgetData: BudgetCategory[] = []
+      // Start with fallback data immediately
+      let budgetData: BudgetCategory[] = getFallbackBudgetData()
+      setBudgetData(budgetData) // Set fallback immediately
       
-      // Get full month's transactions (July 1-23) plus manual transactions
-      console.log('🔄 Attempting to get full month budget data...')
-      const fullMonthData = await getFullMonthBudgetData()
-      if (fullMonthData) {
-        console.log('✅ Using full month budget data:', fullMonthData)
-        budgetData = fullMonthData
-      } else {
-        console.log('❌ Full month budget data failed, using fallback')
-        // Fallback to API or hardcoded data
+      try {
+        // Try to get real data from API
+        console.log('🔄 Attempting to get budget overview from API...')
         const response = await apiClient.getBudgetOverview(user.username)
         console.log('Budget overview API response:', response)
         
@@ -205,10 +201,12 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
           console.log('✅ Setting budget data from API:', response.data)
           budgetData = response.data as BudgetCategory[]
         } else {
-          console.log('❌ API failed, using fallback budget data. Response:', response)
-          // Fallback to persona-based budget data
-          budgetData = getFallbackBudgetData()
+          console.log('❌ API failed, keeping fallback budget data. Response:', response)
+          // Keep the fallback data that was already set
         }
+      } catch (apiError) {
+        console.log('❌ API call failed, keeping fallback budget data. Error:', apiError)
+        // Keep the fallback data that was already set
       }
       
       // Apply localStorage budget caps
@@ -231,12 +229,11 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
       setBudgetData(updatedBudgetData)
     } catch (error) {
       console.error('Error loading budget data:', error)
-      // Fallback to persona-based budget data
-      setBudgetData(getFallbackBudgetData())
+      // Fallback data is already set above, so just log the error
     } finally {
       setLoading(false)
     }
-  }, [user.username, getFallbackBudgetData, getFullMonthBudgetData])
+  }, [user.username, getFallbackBudgetData])
 
   useEffect(() => {
     if (user) {
