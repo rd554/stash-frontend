@@ -18,6 +18,7 @@ import RecentTransactions from '@/components/RecentTransactions'
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [isInitializing, setIsInitializing] = useState(true) // Add initialization loading state
   const [showChat, setShowChat] = useState(false)
   const [showNewTransactionModal, setShowNewTransactionModal] = useState(false)
   const [showAvatarDropdown, setShowAvatarDropdown] = useState(false)
@@ -222,45 +223,53 @@ export default function DashboardPage() {
 
     // Check for monthly reset, session management, and load data
     const initializeDashboard = async () => {
-      // Step 1: Check and manage personality sessions (48-hour expiry)
-      const sessionStatus = await SessionManager.checkAndManageSession()
-      
-      if (sessionStatus.wasExpired) {
-        console.log('48-hour session expired - dashboard will reset to original persona')
-        // Update user object with reverted personality
-        const updatedUserData = localStorage.getItem('stash-ai-user-data')
-        if (updatedUserData) {
-          const parsedData = JSON.parse(updatedUserData)
-          userObj.spendingPersonality = parsedData.spendingPersonality
-          setUser({ ...userObj })
-        }
-      }
-      
-      // Step 2: Check if monthly reset is needed (clears manual transactions)
-      const resetPerformed = await MonthlyReset.checkAndResetIfNeeded(username)
-      if (resetPerformed) {
-        console.log('Monthly reset completed - manual transactions cleared')
-      }
-      
-      // Step 3: If session expired, clear additional user data for clean reset
-      if (sessionStatus.wasExpired) {
-        try {
-          // Clear salary to reset to default
-          await apiClient.clearSalary(username)
-          
-          // Clear manual transactions (if not already done by monthly reset)
-          if (!resetPerformed) {
-            await apiClient.clearManualTransactions(username)
+      try {
+        // Step 1: Check and manage personality sessions (48-hour expiry)
+        const sessionStatus = await SessionManager.checkAndManageSession()
+        
+        if (sessionStatus.wasExpired) {
+          console.log('48-hour session expired - dashboard will reset to original persona')
+          // Update user object with reverted personality
+          const updatedUserData = localStorage.getItem('stash-ai-user-data')
+          if (updatedUserData) {
+            const parsedData = JSON.parse(updatedUserData)
+            userObj.spendingPersonality = parsedData.spendingPersonality
+            setUser({ ...userObj })
           }
-          
-          console.log('User data reset complete - fresh persona dashboard loaded')
-        } catch (error) {
-          console.error('Error during session expiry cleanup:', error)
         }
+        
+        // Step 2: Check if monthly reset is needed (clears manual transactions)
+        const resetPerformed = await MonthlyReset.checkAndResetIfNeeded(username)
+        if (resetPerformed) {
+          console.log('Monthly reset completed - manual transactions cleared')
+        }
+        
+        // Step 3: If session expired, clear additional user data for clean reset
+        if (sessionStatus.wasExpired) {
+          try {
+            // Clear salary to reset to default
+            await apiClient.clearSalary(username)
+            
+            // Clear manual transactions (if not already done by monthly reset)
+            if (!resetPerformed) {
+              await apiClient.clearManualTransactions(username)
+            }
+            
+            console.log('User data reset complete - fresh persona dashboard loaded')
+          } catch (error) {
+            console.error('Error during session expiry cleanup:', error)
+          }
+        }
+        
+        // Step 4: Load fresh transaction data (persona auto-updates to current date)
+        await loadTransactions(username)
+        
+        // Step 5: Mark initialization as complete
+        setIsInitializing(false)
+      } catch (error) {
+        console.error('Dashboard initialization error:', error)
+        setIsInitializing(false) // Still set to false even on error
       }
-      
-      // Step 4: Load fresh transaction data (persona auto-updates to current date)
-      loadTransactions(username)
     }
     
     initializeDashboard()
@@ -284,12 +293,14 @@ export default function DashboardPage() {
     }
   }, [showAvatarDropdown])
 
-  if (!user) {
+  if (!user || isInitializing) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <p className="text-gray-600">
+            {!user ? 'Loading your dashboard...' : 'Initializing dashboard data...'}
+          </p>
         </div>
       </div>
     )
