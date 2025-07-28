@@ -164,28 +164,28 @@ export default function AIFinancialInsights({ user, onGetTips, refreshTrigger }:
   const loadInsights = useCallback(async () => {
     try {
       setLoading(true)
-      console.log('🔍 AI INSIGHTS DEBUG: Loading agentic AI insights for user:', user.username)
+      // console.log('🔍 AI INSIGHTS DEBUG: Loading agentic AI insights for user:', user.username)
       
       // Try to get agentic insights first
       let agenticResponse;
       try {
-        console.log('🔍 AI INSIGHTS DEBUG: About to call getAgenticInsights...')
+        // console.log('🔍 AI INSIGHTS DEBUG: About to call getAgenticInsights...')
         agenticResponse = await apiClient.getAgenticInsights(user.username, 6)
-        console.log('🔍 AI INSIGHTS DEBUG: Agentic insights API response:', agenticResponse)
-        console.log('🔍 AI INSIGHTS DEBUG: Response success:', agenticResponse.success)
-        console.log('🔍 AI INSIGHTS DEBUG: Response data type:', typeof agenticResponse.data)
-        console.log('🔍 AI INSIGHTS DEBUG: Response data is array:', Array.isArray(agenticResponse.data))
-        console.log('🔍 AI INSIGHTS DEBUG: Response data length:', Array.isArray(agenticResponse.data) ? agenticResponse.data.length : 'N/A')
-        console.log('🔍 AI INSIGHTS DEBUG: Response data keys:', Object.keys(agenticResponse.data || {}))
-        console.log('🔍 AI INSIGHTS DEBUG: Response data stringified:', JSON.stringify(agenticResponse.data))
+        // console.log('🔍 AI INSIGHTS DEBUG: Agentic insights API response:', agenticResponse)
+        // console.log('🔍 AI INSIGHTS DEBUG: Response success:', agenticResponse.success)
+        // console.log('🔍 AI INSIGHTS DEBUG: Response data type:', typeof agenticResponse.data)
+        // console.log('🔍 AI INSIGHTS DEBUG: Response data is array:', Array.isArray(agenticResponse.data))
+        // console.log('🔍 AI INSIGHTS DEBUG: Response data length:', Array.isArray(agenticResponse.data) ? agenticResponse.data.length : 'N/A')
+        // console.log('🔍 AI INSIGHTS DEBUG: Response data keys:', Object.keys(agenticResponse.data || {}))
+        // console.log('🔍 AI INSIGHTS DEBUG: Response data stringified:', JSON.stringify(agenticResponse.data))
       } catch (agenticError) {
         console.error('🔍 AI INSIGHTS DEBUG: Agentic insights API call failed:', agenticError)
         throw agenticError // Re-throw to trigger fallback
       }
       
       if (agenticResponse.success && agenticResponse.data && Array.isArray(agenticResponse.data)) {
-        console.log('🔍 AI INSIGHTS DEBUG: Setting agentic insights:', agenticResponse.data)
-        console.log('🔍 AI INSIGHTS DEBUG: Number of agentic insights:', Array.isArray(agenticResponse.data) ? agenticResponse.data.length : 'N/A')
+        // console.log('🔍 AI INSIGHTS DEBUG: Setting agentic insights:', agenticResponse.data)
+        // console.log('🔍 AI INSIGHTS DEBUG: Number of agentic insights:', Array.isArray(agenticResponse.data) ? agenticResponse.data.length : 'N/A')
         
         // In loadInsights, when mapping backend data, set type and insightCategory to the mapped value only
         const agenticInsights = agenticResponse.data.map((insight: BackendInsight) => {
@@ -214,31 +214,31 @@ export default function AIFinancialInsights({ user, onGetTips, refreshTrigger }:
           )
         )
         
-        console.log('🔍 AI INSIGHTS DEBUG: Unique insights after deduplication:', uniqueInsights.length)
+        // console.log('🔍 AI INSIGHTS DEBUG: Unique insights after deduplication:', uniqueInsights.length)
         
         // Ensure we have between 3-6 insights
         let finalInsights = uniqueInsights.slice(0, 6)
         
         // If we don't have at least 3 insights, add fallback insights to reach minimum 3
         if (finalInsights.length < 3) {
-          console.log('🔍 AI INSIGHTS DEBUG: Adding fallback insights to reach minimum 3 total')
+          // console.log('🔍 AI INSIGHTS DEBUG: Adding fallback insights to reach minimum 3 total')
           const fallbackInsights = getFallbackInsights().slice(0, 3 - finalInsights.length)
           finalInsights = [...finalInsights, ...fallbackInsights]
         }
         
-        console.log('🔍 AI INSIGHTS DEBUG: Final insights to display:', finalInsights.length)
+        // console.log('🔍 AI INSIGHTS DEBUG: Final insights to display:', finalInsights.length)
         setInsights(finalInsights)
       } else {
-        console.log('🔍 AI INSIGHTS DEBUG: Agentic insights failed, trying regular insights')
+        // console.log('🔍 AI INSIGHTS DEBUG: Agentic insights failed, trying regular insights')
         // Fallback to regular financial insights
         const response = await apiClient.getFinancialInsights(user.username)
-        console.log('🔍 AI INSIGHTS DEBUG: Regular AI insights API response:', response)
+        // console.log('🔍 AI INSIGHTS DEBUG: Regular AI insights API response:', response)
         
         if (response.success && response.data && typeof response.data === 'object' && 'data' in response.data && Array.isArray(response.data.data)) {
-          console.log('🔍 AI INSIGHTS DEBUG: Setting regular insights:', response.data.data)
+          // console.log('🔍 AI INSIGHTS DEBUG: Setting regular insights:', response.data.data)
           setInsights(response.data.data as unknown as Insight[])
         } else {
-          console.log('🔍 AI INSIGHTS DEBUG: API failed, using fallback insights')
+          // console.log('🔍 AI INSIGHTS DEBUG: API failed, using fallback insights')
           setInsights(getFallbackInsights())
         }
       }
@@ -247,7 +247,7 @@ export default function AIFinancialInsights({ user, onGetTips, refreshTrigger }:
       setInsights(getFallbackInsights())
     } finally {
       setLoading(false)
-      console.log('🔍 AI INSIGHTS DEBUG: Loading completed')
+      // console.log('🔍 AI INSIGHTS DEBUG: Loading completed')
     }
   }, [user.username, getFallbackInsights])
 

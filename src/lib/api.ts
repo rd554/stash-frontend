@@ -22,13 +22,13 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
-      console.log('API Request:', {
-        url,
-        method: options.method || 'GET',
-        body: options.body,
-        baseUrl: this.baseUrl,
-        endpoint
-      });
+      // console.log('API Request:', {
+      //   url,
+      //   method: options.method || 'GET',
+      //   body: options.body,
+      //   baseUrl: this.baseUrl,
+      //   endpoint
+      // });
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
@@ -44,9 +44,9 @@ class ApiClient {
       
       clearTimeout(timeoutId);
 
-      console.log('API Response status:', response.status);
+//       console.log('API Response status:', response.status);
       const data = await response.json();
-      console.log('API Response data:', data);
+//       console.log('API Response data:', data);
 
       if (!response.ok) {
         return {
@@ -82,12 +82,12 @@ class ApiClient {
 
   // Auth endpoints
   async login(username: string, password: string) {
-    console.log('🔐 LOGIN ATTEMPT:', { username, password })
+//     console.log('🔐 LOGIN ATTEMPT:', { username, password })
     const response = await this.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     });
-    console.log('🔐 LOGIN RESPONSE:', response)
+//     console.log('🔐 LOGIN RESPONSE:', response)
     return response;
   }
 
@@ -310,10 +310,10 @@ class ApiClient {
 
   // Agentic AI Insights endpoints
   async getAgenticInsights(userId: string, limit = 3) {
-    console.log('🔍 API DEBUG: Calling getAgenticInsights for user:', userId, 'limit:', limit)
+//     console.log('🔍 API DEBUG: Calling getAgenticInsights for user:', userId, 'limit:', limit)
     try {
       const response = await this.request(`/agentic/insights/${userId}/insights?limit=${limit}`);
-      console.log('🔍 API DEBUG: getAgenticInsights response:', response)
+//       console.log('🔍 API DEBUG: getAgenticInsights response:', response)
       return response;
     } catch (error) {
       console.error('🔍 API DEBUG: getAgenticInsights error:', error)
@@ -452,13 +452,13 @@ class ApiClient {
     insightId: string, 
     response: 'accepted' | 'ignored' | 'snoozed' | 'dismissed'
   ) {
-    console.log('🧠 RECORDING USER RESPONSE:', { userId, insightId, response });
+//     console.log('🧠 RECORDING USER RESPONSE:', { userId, insightId, response });
     try {
       const apiResponse = await this.request(`/agentic/insights/${userId}/insights/${insightId}/response`, {
         method: 'PUT',
         body: JSON.stringify({ response })
       });
-      console.log('🧠 RESPONSE RECORDED:', apiResponse);
+//       console.log('🧠 RESPONSE RECORDED:', apiResponse);
       return apiResponse;
     } catch (error) {
       console.error('Error recording insight response:', error);
@@ -467,10 +467,10 @@ class ApiClient {
   }
 
   async getUserBehavior(userId: string) {
-    console.log('🧠 FETCHING USER BEHAVIOR:', { userId });
+//     console.log('🧠 FETCHING USER BEHAVIOR:', { userId });
     try {
       const response = await this.request(`/agentic/insights/${userId}/behavior`);
-      console.log('🧠 USER BEHAVIOR RESPONSE:', response);
+//       console.log('🧠 USER BEHAVIOR RESPONSE:', response);
       return response;
     } catch (error) {
       console.error('Error fetching user behavior:', error);

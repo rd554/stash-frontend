@@ -36,21 +36,21 @@ export default function Home() {
       // Try to login via API
       const response = await apiClient.login(username, password)
       
-      console.log('Login response:', response)
-      console.log('Response success:', response.success)
-      console.log('Response data:', response.data)
-      console.log('Response data type:', typeof response.data)
-      console.log('Response data keys:', response.data ? Object.keys(response.data) : 'no data')
+      // console.log('Login response:', response)
+      // console.log('Response success:', response.success)
+      // console.log('Response data:', response.data)
+      // console.log('Response data type:', typeof response.data)
+      // console.log('Response data keys:', response.data ? Object.keys(response.data) : 'no data')
       
       if (response.success && (response.data || (response as unknown as { user: unknown }).user)) {
         // User exists - store user info and redirect to dashboard
-        console.log('User exists, redirecting to dashboard')
+        // console.log('User exists, redirecting to dashboard')
         localStorage.setItem('stash-ai-user', username)
         localStorage.setItem('stash-ai-user-data', JSON.stringify((response as unknown as { user: unknown }).user || response.data))
         router.push('/dashboard')
       } else if (!response.success && response.error && response.error.includes('not found')) {
         // User doesn't exist, redirect to onboarding
-        console.log('User not found, redirecting to onboarding')
+        // console.log('User not found, redirecting to onboarding')
         localStorage.setItem('stash-ai-user', username)
         // Set light theme as default since we're removing dark theme support
         localStorage.setItem('stash-ai-theme', 'light')

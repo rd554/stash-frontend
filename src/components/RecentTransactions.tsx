@@ -10,44 +10,41 @@ interface RecentTransactionsProps {
 
 
 export default function RecentTransactions({ transactions }: RecentTransactionsProps) {
-  console.log('RecentTransactions component received:', transactions)
+  // console.log('RecentTransactions component received:', transactions)
   
   // Get the last 10 transactions, sorted by date (most recent first)
   const recentTransactions = transactions
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10)
     
-  console.log('Processed recent transactions:', recentTransactions)
+  // console.log('Processed recent transactions:', recentTransactions)
   
   // Debug: Check if inline styles are working
   useEffect(() => {
-    const cards = document.querySelectorAll('[data-transaction-id]');
-    console.log('Found transaction cards:', cards.length);
-    cards.forEach((card, index) => {
-      const computedStyle = window.getComputedStyle(card);
-      console.log(`Card ${index} background:`, computedStyle.backgroundColor);
-      console.log(`Card ${index} border:`, computedStyle.border);
-      console.log(`Card ${index} margin:`, computedStyle.margin);
-      console.log(`Card ${index} marginBottom:`, computedStyle.marginBottom);
-    });
+    // Debug code commented out
+    // const cards = document.querySelectorAll('[data-transaction-id]');
+    // console.log('Found transaction cards:', cards.length);
+    // cards.forEach((card, index) => {
+    //   const computedStyle = window.getComputedStyle(card);
+    //   console.log(`Card ${index} background:`, computedStyle.backgroundColor);
+    // });
     
-    // Check container spacing
-    const container = document.querySelector('.space-y-6');
-    if (container) {
-      const containerStyle = window.getComputedStyle(container);
-      console.log('Container gap:', containerStyle.gap);
-      console.log('Container display:', containerStyle.display);
-    }
+    // Check container spacing - debug code commented out
+    // const container = document.querySelector('.space-y-6');
+    // if (container) {
+    //   const containerStyle = window.getComputedStyle(container);
+    //   console.log('Container gap:', containerStyle.gap);
+    // }
   }, [recentTransactions]);
 
 
 
   const getCategoryIcon = (category: string, merchant?: string) => {
-    console.log('Getting icon for category:', category, 'merchant:', merchant)
+    // console.log('Getting icon for category:', category, 'merchant:', merchant)
     
     // Check for metro in merchant name first (more specific)
     if (merchant && merchant.toLowerCase().includes('metro')) {
-      console.log('Found metro in merchant name, using train emoji')
+      // console.log('Found metro in merchant name, using train emoji')
       return {
         icon: '🚇',
         bgColor: 'bg-gray-100',
@@ -58,6 +55,7 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
     // Simple, direct mapping with fallback
     const iconMap: { [key: string]: string } = {
       'food': '🍕',
+      'dining': '🍕',
       'Food & Dining': '🍕',
       'food & dining': '🍕',
       'metro': '🚇',
@@ -97,7 +95,7 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
     }
     
     const icon = iconMap[category] || '●'
-    console.log('Icon for category', category, ':', icon)
+    // console.log('Icon for category', category, ':', icon)
     
     // Return consistent styling for all icons
     return {
@@ -141,7 +139,7 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
   }
 
   const getPaymentModeDisplay = (paymentMode: string) => {
-    console.log('Getting payment mode for:', paymentMode)
+    // console.log('Getting payment mode for:', paymentMode)
     
     // Simple mapping for payment methods
     const modeMap: { [key: string]: string } = {
@@ -158,7 +156,7 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
     }
     
     const text = modeMap[paymentMode] || paymentMode || 'Unknown'
-    console.log('Payment mode text:', text)
+    // console.log('Payment mode text:', text)
     return { text: text, color: 'text-gray-500' }
   }
 
@@ -183,14 +181,12 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
       
       <div className="space-y-6" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {recentTransactions.map((transaction, index) => {
-          console.log('Rendering transaction:', transaction)
-          const categoryData = getCategoryIcon(transaction.category)
+          // console.log('Rendering transaction:', transaction)
           const amountData = formatAmount(transaction.amount, transaction.category)
           const paymentModeData = getPaymentModeDisplay(transaction.paymentMode)
           
-          console.log('Category data:', categoryData)
-          console.log('Amount data:', amountData)
-          console.log('Payment mode data:', paymentModeData)
+          // console.log('Amount data:', amountData)
+          // console.log('Payment mode data:', paymentModeData)
           
           return (
             <div 
@@ -203,13 +199,13 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
                 padding: '16px 20px'
               }}
               onClick={() => {
-                console.log('Card clicked - checking background color');
-                const element = document.querySelector(`[data-transaction-id="${transaction.id}"]`);
-                if (element) {
-                  const computedStyle = window.getComputedStyle(element);
-                  console.log('Computed background color:', computedStyle.backgroundColor);
-                  console.log('Computed background:', computedStyle.background);
-                }
+                // console.log('Card clicked - checking background color');
+                // Debug code for checking styles - commented out
+                // const element = document.querySelector(`[data-transaction-id="${transaction.id}"]`);
+                // if (element) {
+                //   const computedStyle = window.getComputedStyle(element);
+                //   console.log('Computed background color:', computedStyle.backgroundColor);
+                // }
               }}
               data-transaction-id={transaction.id}
             >

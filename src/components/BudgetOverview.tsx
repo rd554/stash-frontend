@@ -22,9 +22,9 @@ interface BudgetCategory {
 
 // Color coding based on spending status (percentage of budget used)
 const getProgressBarColor = (percentage: number): string => {
-  if (percentage >= 90) return 'bg-red-500'
-  if (percentage >= 75) return 'bg-yellow-500'
-  return 'bg-green-500'
+  if (percentage >= 90) return '#EF4444' // red-500
+  if (percentage >= 75) return '#F59E0B' // yellow-500
+  return '#10B981' // green-500
 }
 
 export default function BudgetOverview({ user, transactions = [] }: BudgetOverviewProps) {
@@ -150,14 +150,14 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
   }, [user, transactions])
 
   const getFullMonthBudgetData = useCallback(async (): Promise<BudgetCategory[] | null> => {
-    console.log('🚀 getFullMonthBudgetData() called for user:', user.username)
+    // console.log('🚀 getFullMonthBudgetData() called for user:', user.username)
     try {
       // Get all transactions (persona + manual) from new API
       const response = await apiClient.getBudgetTransactions(user.username)
-      console.log('Budget transactions API response:', response)
+      // console.log('Budget transactions API response:', response)
       
       if (!response.success || !response.data) {
-        console.log('Failed to get budget transactions, using fallback')
+        // console.log('Failed to get budget transactions, using fallback')
         return null
       }
       
@@ -168,10 +168,10 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
         personaCount: number;
       }
       const allTransactions = apiData.transactions || []
-      console.log('Total transactions for budget calculation:', allTransactions.length)
-      console.log('Manual transactions count:', apiData.manualCount)
-      console.log('Persona transactions count:', apiData.personaCount)
-      console.log('Sample transactions:', allTransactions.slice(0, 2))
+      // console.log('Total transactions for budget calculation:', allTransactions.length)
+      // console.log('Manual transactions count:', apiData.manualCount)
+      // console.log('Persona transactions count:', apiData.personaCount)
+      // console.log('Sample transactions:', allTransactions.slice(0, 2))
       
       // Calculate budget data from all transactions
       return calculateBudgetDataFromTransactions(allTransactions)
@@ -185,28 +185,34 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
   const loadBudgetData = useCallback(async () => {
     try {
       setLoading(true)
-      console.log('Loading budget data for user:', user.username)
+      // console.log('Loading budget data for user:', user.username)
       
-      // Start with fallback data immediately
-      let budgetData: BudgetCategory[] = getFallbackBudgetData()
-      setBudgetData(budgetData) // Set fallback immediately
+      let budgetData: BudgetCategory[] = []
       
-      try {
-        // Try to get real data from API
-        console.log('🔄 Attempting to get budget overview from API...')
-        const response = await apiClient.getBudgetOverview(user.username)
-        console.log('Budget overview API response:', response)
-        
-        if (response.success && response.data && Array.isArray(response.data)) {
-          console.log('✅ Setting budget data from API:', response.data)
-          budgetData = response.data as BudgetCategory[]
-        } else {
-          console.log('❌ API failed, keeping fallback budget data. Response:', response)
-          // Keep the fallback data that was already set
+      // First try to get real transaction data (persona + manual)
+      // console.log('🔄 Attempting to get full month budget data...')
+      const fullMonthData = await getFullMonthBudgetData()
+      if (fullMonthData) {
+        // console.log('✅ Using full month budget data:', fullMonthData)
+        budgetData = fullMonthData
+      } else {
+        // console.log('❌ Full month budget data failed, trying fallback API')
+        // Fallback to simplified budget overview API
+        try {
+          const response = await apiClient.getBudgetOverview(user.username)
+          // console.log('Budget overview API response:', response)
+          
+          if (response.success && response.data && Array.isArray(response.data)) {
+            // console.log('✅ Setting budget data from fallback API:', response.data)
+            budgetData = response.data as BudgetCategory[]
+          } else {
+            // console.log('❌ Fallback API failed, using persona fallback data. Response:', response)
+            budgetData = getFallbackBudgetData()
+          }
+                 } catch {
+           // console.log('❌ Fallback API call failed, using persona fallback data.')
+          budgetData = getFallbackBudgetData()
         }
-      } catch (apiError) {
-        console.log('❌ API call failed, keeping fallback budget data. Error:', apiError)
-        // Keep the fallback data that was already set
       }
       
       // Apply localStorage budget caps
@@ -233,7 +239,7 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
     } finally {
       setLoading(false)
     }
-  }, [user.username, getFallbackBudgetData])
+  }, [user.username, getFallbackBudgetData, getFullMonthBudgetData])
 
   useEffect(() => {
     if (user) {

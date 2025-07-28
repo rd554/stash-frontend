@@ -25,7 +25,7 @@ export default function MetricCards({ user, transactions = [] }: MetricCardsProp
 
   // Debug: Log when metrics change
   useEffect(() => {
-    console.log('Metrics state changed:', metrics)
+    // console.log('Metrics state changed:', metrics)
   }, [metrics])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<string | null>(null)
@@ -125,7 +125,7 @@ export default function MetricCards({ user, transactions = [] }: MetricCardsProp
       totalSpent
     }
     
-    console.log('Calculated metrics:', calculatedMetrics)
+    // console.log('Calculated metrics:', calculatedMetrics)
     return calculatedMetrics
   }, [user, currentSalary])
 

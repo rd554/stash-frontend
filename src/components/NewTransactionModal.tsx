@@ -14,7 +14,7 @@ interface NewTransactionModalProps {
 }
 
 export default function NewTransactionModal({ isOpen, onClose, onTransactionAdded, userId }: NewTransactionModalProps) {
-  console.log('NewTransactionModal rendered with isOpen:', isOpen)
+  // console.log('NewTransactionModal rendered with isOpen:', isOpen)
   
   // Helper function to get current date/time in the correct format
   const getCurrentDateTimeString = () => {
@@ -101,7 +101,7 @@ export default function NewTransactionModal({ isOpen, onClose, onTransactionAdde
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Form submitted with data:', formData)
+    // console.log('Form submitted with data:', formData)
     
     if (!formData.amount || !formData.transactionName || !formData.category || !formData.paymentMethod) {
       toast.error('Please fill in all required fields')
@@ -190,11 +190,11 @@ export default function NewTransactionModal({ isOpen, onClose, onTransactionAdde
   }
 
   if (!isOpen) {
-    console.log('Modal not open, returning null')
+    // console.log('Modal not open, returning null')
     return null
   }
 
-  console.log('Modal is open, rendering modal content')
+  // console.log('Modal is open, rendering modal content')
 
   return (
     <div 

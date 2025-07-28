@@ -24,17 +24,17 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
 
   const loadChatHistory = useCallback(async () => {
     try {
-      console.log('Loading chat history for user:', user.username)
+      // console.log('Loading chat history for user:', user.username)
       const response = await apiClient.getChatHistory(user.username, 50)
       
       if (response.success && response.data && Array.isArray(response.data)) {
-        console.log('Loaded chat history:', response.data.length, 'messages')
+        // console.log('Loaded chat history:', response.data.length, 'messages')
         setMessages(response.data.map((msg: { id: string; userId: string; message: string; isUser: boolean; timestamp: string }) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         })))
       } else {
-        console.log('No chat history found or API failed')
+        // console.log('No chat history found or API failed')
         setMessages([])
       }
     } catch (error) {
@@ -51,9 +51,9 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
 
   // Check for context updates when trigger changes
   useEffect(() => {
-    console.log('Context update trigger changed:', contextUpdateTrigger)
+    // console.log('Context update trigger changed:', contextUpdateTrigger)
     if (contextUpdateTrigger) {
-      console.log('Triggering context check...')
+      // console.log('Triggering context check...')
       checkForContext()
     }
   }, [contextUpdateTrigger])
@@ -117,29 +117,29 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
   const checkForContext = () => {
     try {
       const contextData = localStorage.getItem('stash-ai-chatbot-context')
-      console.log('Checking for context, localStorage data:', contextData)
+      // console.log('Checking for context, localStorage data:', contextData)
       if (contextData) {
         const context = JSON.parse(contextData)
-        console.log('Found context data:', context)
+        // console.log('Found context data:', context)
         setSessionId(context.sessionId)
         setSuggestedQuestion(context.suggestedQuestion)
         
         // Pre-fill input with suggested question
         if (context.suggestedQuestion) {
           setInputMessage(context.suggestedQuestion)
-          console.log('Input message set to:', context.suggestedQuestion)
+          // console.log('Input message set to:', context.suggestedQuestion)
         }
         
         // Clear the context from localStorage only after setting the input
         setTimeout(() => {
           localStorage.removeItem('stash-ai-chatbot-context')
-          console.log('Context cleared from localStorage')
+          // console.log('Context cleared from localStorage')
         }, 100)
         
-        console.log('Context loaded and applied:', context.suggestedQuestion)
-        console.log('SessionId set to:', context.sessionId)
+        // console.log('Context loaded and applied:', context.suggestedQuestion)
+        // console.log('SessionId set to:', context.sessionId)
       } else {
-        console.log('No context data found in localStorage')
+        // console.log('No context data found in localStorage')
       }
     } catch (error) {
       console.error('Error loading context:', error)
@@ -167,16 +167,16 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
       
       if (sessionId) {
         // Use agentic chatbot with context
-        console.log('Using agentic chatbot with sessionId:', sessionId)
-        console.log('Sending message:', currentMessage)
+        // console.log('Using agentic chatbot with sessionId:', sessionId)
+        // console.log('Sending message:', currentMessage)
         response = await apiClient.sendChatbotMessage(user.username, currentMessage, sessionId)
-        console.log('Agentic chatbot response:', response)
+        // console.log('Agentic chatbot response:', response)
         
         if (response.success && response.data) {
-          console.log('Response data structure:', response.data)
-          console.log('Response.data.message:', (response.data as Record<string, unknown>).message)
-          console.log('Response.data type:', typeof response.data)
-          console.log('Response.data keys:', Object.keys(response.data))
+          // console.log('Response data structure:', response.data)
+          // console.log('Response.data.message:', (response.data as Record<string, unknown>).message)
+          // console.log('Response.data type:', typeof response.data)
+          // console.log('Response.data keys:', Object.keys(response.data))
           
           // Handle double-nested response structure
           let messageContent = 'No message received'
@@ -198,13 +198,13 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
             timestamp: new Date()
           }
           setMessages(prev => [...prev, aiMessage])
-          console.log('AI message added to chat:', aiMessage)
+          // console.log('AI message added to chat:', aiMessage)
         } else {
           console.error('Agentic chatbot response failed:', response)
           // Fallback to regular chat
-          console.log('Falling back to regular chat')
+          // console.log('Falling back to regular chat')
           const fallbackResponse = await apiClient.sendMessage(user.username, currentMessage)
-          console.log('Fallback chat response:', fallbackResponse)
+          // console.log('Fallback chat response:', fallbackResponse)
           
           if (fallbackResponse.success && fallbackResponse.data && typeof fallbackResponse.data === 'object') {
             const data = fallbackResponse.data as Record<string, unknown>
@@ -223,9 +223,9 @@ export default function ChatInterface({ user, contextUpdateTrigger }: ChatInterf
         }
       } else {
         // Use regular chat
-        console.log('Using regular chat')
+        // console.log('Using regular chat')
         response = await apiClient.sendMessage(user.username, currentMessage)
-        console.log('Regular chat response:', response)
+        // console.log('Regular chat response:', response)
         
         if (response.success && response.data && typeof response.data === 'object') {
           const data = response.data as Record<string, unknown>

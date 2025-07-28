@@ -60,7 +60,7 @@ export default function AdvancedAnalytics({ user, refreshTrigger }: AdvancedAnal
   const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true)
-      console.log('📊 ADVANCED ANALYTICS: Loading analytics for user:', user.username)
+      // console.log('📊 ADVANCED ANALYTICS: Loading analytics for user:', user.username)
       
       // Load all analytics data
       const [trendsRes, healthRes, correlationsRes, predictionsRes, categoriesRes] = await Promise.allSettled([

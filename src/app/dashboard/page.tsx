@@ -27,7 +27,7 @@ export default function DashboardPage() {
 
   const generateAgenticInsights = useCallback(async (userId: string, transactions: Transaction[]) => {
     try {
-      console.log('Generating agentic insights for user:', userId)
+      // console.log('Generating agentic insights for user:', userId)
       
       // Get the latest transaction for context
       const latestTransaction = transactions.length > 0 ? transactions[0] : null
@@ -48,7 +48,7 @@ export default function DashboardPage() {
       )
       
       if (response.success) {
-        console.log('Agentic insights generated successfully')
+        // console.log('Agentic insights generated successfully')
       }
     } catch (error) {
       console.error('Error generating agentic insights:', error)
@@ -57,7 +57,7 @@ export default function DashboardPage() {
 
   const loadTransactions = useCallback(async (userId: string) => {
     try {
-      console.log('Loading transactions for user:', userId)
+      // console.log('Loading transactions for user:', userId)
       
       // Use the new budget transactions API to get all transactions (persona + manual)
       const response = await apiClient.getBudgetTransactions(userId)
@@ -73,9 +73,9 @@ export default function DashboardPage() {
         const apiData = response.data as BudgetTransactionsResponse
         const allTransactions = apiData.transactions || []
         
-        console.log('Loaded transactions:', allTransactions.length)
-        console.log('Manual transactions:', apiData.manualCount)
-        console.log('Persona transactions:', apiData.personaCount)
+        // console.log('Loaded transactions:', allTransactions.length)
+        // console.log('Manual transactions:', apiData.manualCount)
+        // console.log('Persona transactions:', apiData.personaCount)
         
         setTransactions(allTransactions)
         
@@ -88,7 +88,7 @@ export default function DashboardPage() {
       
     } catch (error) {
       console.error('Failed to load transactions:', error)
-      console.log('Setting empty transactions array due to error')
+      // console.log('Setting empty transactions array due to error')
       setTransactions([])
     }
   }, [generateAgenticInsights])
@@ -136,7 +136,7 @@ export default function DashboardPage() {
   //       
   //       const messageData = response.data as MessageResponse
   //       // Handle AI response if needed
-  //       console.log('AI response:', messageData.aiMessage)
+  //       // console.log('AI response:', messageData.aiMessage)
   //     }
   //   } catch (error) {
   //     console.error('Failed to send message:', error)
@@ -144,17 +144,17 @@ export default function DashboardPage() {
   // }
 
   const handleGetTips = () => {
-    console.log('Get Tips clicked - opening chat and triggering context update')
+    // console.log('Get Tips clicked - opening chat and triggering context update')
     setShowChat(true)
     // Trigger context update for the chatbot
     setContextUpdateTrigger(prev => prev + 1)
   }
 
   const handleNewTransaction = () => {
-    console.log('New Transaction button clicked')
-    console.log('Current showNewTransactionModal state:', showNewTransactionModal)
+    // console.log('New Transaction button clicked')
+    // console.log('Current showNewTransactionModal state:', showNewTransactionModal)
     setShowNewTransactionModal(true)
-    console.log('Set showNewTransactionModal to true')
+    // console.log('Set showNewTransactionModal to true')
   }
 
   const handleCloseModal = () => {
@@ -168,7 +168,7 @@ export default function DashboardPage() {
   }
 
   const handleSignOut = () => {
-    console.log('Signing out...')
+    // console.log('Signing out...')
     
     // Clear all localStorage items
     localStorage.removeItem('stash-ai-user-data')
@@ -189,7 +189,7 @@ export default function DashboardPage() {
     }
     keysToRemove.forEach(key => localStorage.removeItem(key))
     
-    console.log('LocalStorage cleared, redirecting to login...')
+    // console.log('LocalStorage cleared, redirecting to login...')
     
     // Force redirect to login page
     window.location.href = '/'
@@ -224,7 +224,7 @@ export default function DashboardPage() {
       // Check if monthly reset is needed
       const resetPerformed = await MonthlyReset.checkAndResetIfNeeded(username)
       if (resetPerformed) {
-        console.log('Monthly reset completed, refreshing data...')
+        // console.log('Monthly reset completed, refreshing data...')
       }
       
       // Load transactions from API

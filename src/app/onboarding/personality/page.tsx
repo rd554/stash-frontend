@@ -33,11 +33,11 @@ export default function PersonalitySelectionPage() {
   ]
 
   const handleContinue = async () => {
-    console.log('Continue button clicked, selected personality:', selectedPersonality)
+    // console.log('Continue button clicked, selected personality:', selectedPersonality)
     
     if (selectedPersonality) {
       try {
-        console.log('Starting registration process...')
+        // console.log('Starting registration process...')
         
         // Save user's spending personality
         localStorage.setItem('stash-ai-spending-personality', selectedPersonality)
@@ -49,7 +49,7 @@ export default function PersonalitySelectionPage() {
         // Always use light theme since we removed dark theme support
         const theme = 'light'
         
-        console.log('User data:', { username, name, age, spendingPersonality: selectedPersonality, theme })
+        // console.log('User data:', { username, name, age, spendingPersonality: selectedPersonality, theme })
         
         // Register user with backend
         const response = await apiClient.register({
@@ -60,10 +60,10 @@ export default function PersonalitySelectionPage() {
           theme: theme
         })
         
-        console.log('Registration response:', response)
+        // console.log('Registration response:', response)
         
         if (response.success) {
-          console.log('Registration successful, redirecting to dashboard...')
+          // console.log('Registration successful, redirecting to dashboard...')
           router.push('/dashboard')
         } else {
           console.error('Registration failed:', response.error)
@@ -74,7 +74,7 @@ export default function PersonalitySelectionPage() {
         toast.error('Registration failed. Please try again.')
       }
     } else {
-      console.log('No personality selected')
+      // console.log('No personality selected')
       toast.error('Please select a spending personality')
     }
   }
@@ -95,7 +95,7 @@ export default function PersonalitySelectionPage() {
           <button
             key={option.id}
             onClick={() => {
-              console.log('Personality selected:', option.id)
+              // console.log('Personality selected:', option.id)
               setSelectedPersonality(option.id)
             }}
             className={`text-[18px] font-medium leading-[24px] rounded-[8px] border w-[320px] ${

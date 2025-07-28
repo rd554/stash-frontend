@@ -46,16 +46,16 @@ export default function WeeklySpending({ user }: WeeklySpendingProps) {
   const loadWeeklyData = useCallback(async () => {
     try {
       setLoading(true)
-      console.log('Loading weekly data for user:', user.username)
+      // console.log('Loading weekly data for user:', user.username)
       
       const response = await apiClient.getUserWeeklyTransactions(user.username)
-      console.log('Weekly spending API response:', response)
+      // console.log('Weekly spending API response:', response)
       
       if (response.success && response.data && Array.isArray(response.data)) {
-        console.log('Setting weekly data:', response.data)
+        // console.log('Setting weekly data:', response.data)
         setWeeklyData(response.data as WeeklyData[])
       } else {
-        console.log('API failed, using fallback weekly data')
+        // console.log('API failed, using fallback weekly data')
         // Fallback to empty weekly data
         setWeeklyData(getFallbackWeeklyData())
       }
