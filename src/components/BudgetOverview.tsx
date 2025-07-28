@@ -38,25 +38,25 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
     
     const personalityData = {
       'Heavy Spender': [
-        { category: 'Entertainment', amount: 8000, budgetCap: 5000, percentage: 160, isOverBudget: true },
-        { category: 'Food & Dining', amount: 25000, budgetCap: 30000, percentage: 83.33, isOverBudget: false },
-        { category: 'Groceries', amount: 20000, budgetCap: 25000, percentage: 80, isOverBudget: false },
-        { category: 'Shopping', amount: 35000, budgetCap: 30000, percentage: 116.67, isOverBudget: true },
-        { category: 'Transport', amount: 12000, budgetCap: 15000, percentage: 80, isOverBudget: false }
+        { category: 'Entertainment', amount: 8000, budgetCap: 12000, percentage: 66.67, isOverBudget: false },
+        { category: 'Food & Dining', amount: 7000, budgetCap: 10000, percentage: 70, isOverBudget: false },
+        { category: 'Groceries', amount: 9000, budgetCap: 12000, percentage: 75, isOverBudget: false },
+        { category: 'Shopping', amount: 12000, budgetCap: 15000, percentage: 80, isOverBudget: false },
+        { category: 'Transport', amount: 3000, budgetCap: 4000, percentage: 75, isOverBudget: false }
       ],
       'Medium Spender': [
-        { category: 'Food & Dining', amount: 18000, budgetCap: 20000, percentage: 90, isOverBudget: false },
-        { category: 'Groceries', amount: 15000, budgetCap: 20000, percentage: 75, isOverBudget: false },
+        { category: 'Food & Dining', amount: 4500, budgetCap: 6000, percentage: 75, isOverBudget: false },
+        { category: 'Groceries', amount: 5000, budgetCap: 7000, percentage: 71.43, isOverBudget: false },
         { category: 'Savings', amount: 18000, budgetCap: 20000, percentage: 90, isOverBudget: false },
-        { category: 'Shopping', amount: 15000, budgetCap: 20000, percentage: 75, isOverBudget: false },
-        { category: 'Transport', amount: 8000, budgetCap: 10000, percentage: 80, isOverBudget: false }
+        { category: 'Shopping', amount: 9000, budgetCap: 12000, percentage: 75, isOverBudget: false },
+        { category: 'Transport', amount: 4000, budgetCap: 5000, percentage: 80, isOverBudget: false }
       ],
       'Max Saver': [
-        { category: 'Transport', amount: 5000, budgetCap: 8000, percentage: 62.5, isOverBudget: false },
-        { category: 'Groceries', amount: 12000, budgetCap: 15000, percentage: 80, isOverBudget: false },
-        { category: 'Travel', amount: 8000, budgetCap: 12000, percentage: 66.67, isOverBudget: false },
-        { category: 'Utilities', amount: 10000, budgetCap: 12000, percentage: 83.33, isOverBudget: false },
-        { category: 'Savings', amount: 12000, budgetCap: 15000, percentage: 80, isOverBudget: false }
+        { category: 'Transport', amount: 3500, budgetCap: 5000, percentage: 70, isOverBudget: false },
+        { category: 'Groceries', amount: 4500, budgetCap: 6000, percentage: 75, isOverBudget: false },
+        { category: 'Travel', amount: 2500, budgetCap: 4000, percentage: 62.5, isOverBudget: false },
+        { category: 'Utilities', amount: 5000, budgetCap: 7000, percentage: 71.43, isOverBudget: false },
+        { category: 'Savings', amount: 20000, budgetCap: 25000, percentage: 80, isOverBudget: false }
       ]
     }
     
@@ -70,27 +70,27 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
       switch (persona) {
         case 'Heavy Spender':
           return {
-            'Entertainment': 5000,
-            'Food & Dining': 30000,
-            'Groceries': 25000,
-            'Shopping': 30000,
-            'Transport': 15000
+            'Entertainment': 12000,  // Match backend: 12000
+            'Food & Dining': 10000,  // Match backend: 10000 (Dining)
+            'Groceries': 12000,      // Match backend: 12000
+            'Shopping': 15000,       // Match backend: 15000
+            'Transport': 4000        // Match backend: 4000
           }
         case 'Medium Spender':
           return {
-            'Food & Dining': 20000,
-            'Groceries': 20000,
-            'Savings': 20000,
-            'Shopping': 20000,
-            'Transport': 10000
+            'Food & Dining': 6000,   // Match backend: 6000 (Food)
+            'Groceries': 7000,       // Match backend: 7000
+            'Savings': 20000,        // Match backend: 20000
+            'Shopping': 12000,       // Match backend: 12000
+            'Transport': 5000        // Match backend: 5000
           }
         case 'Max Saver':
           return {
-            'Transport': 8000,
-            'Groceries': 15000,
-            'Travel': 12000,
-            'Utilities': 12000,
-            'Savings': 15000
+            'Transport': 5000,       // Match backend: 5000
+            'Groceries': 6000,       // Match backend: 6000
+            'Travel': 4000,          // Match backend: 4000
+            'Utilities': 7000,       // Match backend: 7000
+            'Savings': 25000         // Match backend: 25000
           }
         default:
           return {
@@ -104,14 +104,55 @@ export default function BudgetOverview({ user, transactions = [] }: BudgetOvervi
     }
 
     const personaCategories = getPersonaSpecificCategories()
+    console.log('Processing transactions for budget calculation:', transactionList.length)
     const categoryTotals: { [key: string]: number } = {}
     
     // Calculate totals by category
     transactionList.forEach(tx => {
-      const category = tx.category
+      // Map backend categories to frontend budget categories
+      let mappedCategory = tx.category
+      
+      // Normalize category mapping to match backend data
+      switch (tx.category.toLowerCase()) {
+        case 'dining':
+        case 'food':
+        case 'food & dining':
+          mappedCategory = 'Food & Dining'
+          break
+        case 'entertainment':
+          mappedCategory = 'Entertainment'
+          break
+        case 'groceries':
+          mappedCategory = 'Groceries'
+          break
+        case 'shopping':
+          mappedCategory = 'Shopping'
+          break
+        case 'transport':
+        case 'transportation':
+          mappedCategory = 'Transport'
+          break
+        case 'savings':
+          mappedCategory = 'Savings'
+          break
+        case 'travel':
+          mappedCategory = 'Travel'
+          break
+        case 'utilities':
+          mappedCategory = 'Utilities'
+          break
+        default:
+          // Keep the original category if no mapping found
+          mappedCategory = tx.category
+      }
+      
       const amount = typeof tx.amount === 'string' ? parseFloat(tx.amount) : tx.amount
-      categoryTotals[category] = (categoryTotals[category] || 0) + amount
+      categoryTotals[mappedCategory] = (categoryTotals[mappedCategory] || 0) + amount
+      
+      console.log(`Transaction: ${tx.merchant || 'Unknown'} - Original: ${tx.category} -> Mapped: ${mappedCategory} - Amount: ₹${amount}`)
     })
+    
+    console.log('Final category totals:', categoryTotals)
     
     // Create budget categories ONLY for persona-specific categories
     const budgetCategories: BudgetCategory[] = Object.keys(personaCategories).map(category => {

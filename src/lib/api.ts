@@ -108,6 +108,12 @@ class ApiClient {
     return this.request(`/auth/profile/${username}`);
   }
 
+  async updateSpendingPersonality(username: string, spendingPersonality: string) {
+    return this.request(`/auth/personality/${username}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ spendingPersonality }),
+    });
+  }
 
 
   // Transaction endpoints
