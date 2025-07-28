@@ -2,10 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
 import { TestUser } from '@/types'
 import { apiClient } from '@/lib/api'
-import toast from 'react-hot-toast'
 
 export default function Home() {
   const [username, setUsername] = useState('')
@@ -14,7 +12,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const handleLogin = async (userData: { username: string; name: string; age: string; theme: string; spendingPersonality: string }) => {
+  const handleLogin = async () => {
     setError('')
     setIsLoading(true)
 
@@ -44,11 +42,11 @@ export default function Home() {
       console.log('Response data type:', typeof response.data)
       console.log('Response data keys:', response.data ? Object.keys(response.data) : 'no data')
       
-      if (response.success && (response.data || (response as any).user)) {
+      if (response.success && (response.data || (response as unknown as { user: unknown }).user)) {
         // User exists - store user info and redirect to dashboard
         console.log('User exists, redirecting to dashboard')
         localStorage.setItem('stash-ai-user', username)
-        localStorage.setItem('stash-ai-user-data', JSON.stringify((response as any).user || response.data))
+        localStorage.setItem('stash-ai-user-data', JSON.stringify((response as unknown as { user: unknown }).user || response.data))
         router.push('/dashboard')
       } else if (!response.success && response.error && response.error.includes('not found')) {
         // User doesn't exist, redirect to onboarding
@@ -97,7 +95,7 @@ export default function Home() {
                 placeholder="Username (test1, test2, test3)"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin({ username, name: '', age: '', theme: '', spendingPersonality: '' })}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
                 className="w-full bg-white focus:outline-none focus:border-black text-[18px] placeholder-gray-200"
                 style={{ border: '2px solid #9CA3AF', padding: '0.75rem 2.5rem', borderRadius: '16px', boxSizing: 'border-box', color: '#000000' }}
               />
@@ -108,7 +106,7 @@ export default function Home() {
                 placeholder="Password (test@123)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin({ username, name: '', age: '', theme: '', spendingPersonality: '' })}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
                 className="w-full bg-white focus:outline-none focus:border-black text-[18px] placeholder-gray-200"
                 style={{ border: '2px solid #9CA3AF', padding: '0.75rem 2.5rem', borderRadius: '16px', boxSizing: 'border-box', color: '#000000' }}
               />
@@ -123,7 +121,7 @@ export default function Home() {
           
           <div className="w-full">
             <button
-              onClick={() => handleLogin({ username, name: '', age: '', theme: '', spendingPersonality: '' })}
+              onClick={() => handleLogin()}
               disabled={isLoading}
               className="w-full bg-[#000000] text-[#ffffff] text-[18px] font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               style={{ padding: '0.75rem 2.5rem', borderRadius: '16px', boxSizing: 'border-box' }}

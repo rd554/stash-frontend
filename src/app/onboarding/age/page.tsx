@@ -2,11 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown } from 'lucide-react'
 
 export default function AgeSelectionPage() {
   const [selectedAge, setSelectedAge] = useState('')
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const router = useRouter()
 
   // Generate age options (18-80)
